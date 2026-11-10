@@ -1,128 +1,50 @@
-# 
-
-# \# MeshWeaver
-
-# 
-
-# A decentralized asynchronous Python task execution
-
-# framework designed for peer-to-peer distributed
-
-# computing without a central task broker.
-
-# 
-
-# \## Motivation
-
-# 
-
-# Traditional distributed task queues often depend
-
-# on centralized infrastructure such as Redis or
-
-# RabbitMQ.
-
-# 
-
-# MeshWeaver explores decentralized task execution
-
-# where independent Python nodes communicate,
-
-# discover peers, and distribute computational
-
-# workloads across a peer-to-peer network.
-
-# 
-
-# \## Objectives
-
-# 
-
-# \- Asynchronous peer-to-peer communication
-
-# \- Distributed node discovery
-
-# \- Decentralized task execution
-
-# \- Load-aware task routing
-
-# \- Fault detection and task recovery
-
-# \- Secure node communication
-
-# 
-
-# \## Technology Stack
-
-# 
-
-# \- Python
-
-# \- asyncio
-
-# \- TCP / UDP sockets
-
-# \- cloudpickle
-
-# \- Kademlia DHT
-
-# \- Gossip protocol
-
-# \- TLS / SSL
-
-# 
-
-# \## Development Progress
-
-# 
-
-# \### Week 1
-
-# \- Project initialization
-
-# \- Asynchronous networking
-
-# \- Task serialization
-
-# \- Remote task execution
-
-# 
-
-# \### Week 2
-
-# \- Peer discovery
-
-# \- Distributed node communication
-
-# \- Gossip-based resource monitoring
-
-# 
-
-# \### Week 3
-
-# \- Task routing
-
-# \- Load-aware scheduling
-
-# \- Fault tolerance
-
-# 
-
-# \### Week 4
-
-# \- Security
-
-# \- Monitoring dashboard
-
-# \- Final integration
-
-# 
-
-# \## Status
-
-# 
-
-# Currently under development.
-
-# 
-
+# MeshWeaver
+
+**A decentralized asynchronous Python task execution framework for peer-to-peer distributed computing.**
+
+MeshWeaver is an internship project at Infotact exploring decentralized task execution through asynchronous networking and remote Python function execution.
+
+## Week 1 — Networking & Remote Execution
+
+### Objectives
+- Establish asynchronous communication between Python nodes.
+- Implement TCP-based client-server communication.
+- Develop a structured message protocol.
+- Serialize Python functions and arguments using `cloudpickle`.
+- Execute serialized functions remotely.
+- Return execution results to the requesting node.
+
+### Technology Stack
+- **Python** — Core implementation
+- **asyncio** — Asynchronous networking and task execution
+- **TCP / UDP** — Network communication
+- **cloudpickle** — Python function serialization
+
+### Project Structure
+
+```text
+MeshWeaver/
+├── meshweaver/
+│   ├── __init__.py
+│   ├── node.py
+│   ├── protocol.py
+│   └── serialization.py
+├── tests/
+│   ├── test_protocol.py
+│   └── test_serialization.py
+├── examples/
+│   ├── echo_demo.py
+│   └── remote_task_demo.py
+├── README.md
+└── requirements.txt
+```
+
+### Development Status
+
+Currently under development.
+
+Week 1 focuses on establishing the communication and execution foundation required for distributed task processing.
+
+## Internship
+
+Developed as part of the **Infotact MeshWeaver Internship Project**.
