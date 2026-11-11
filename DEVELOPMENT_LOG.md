@@ -1,3 +1,4 @@
+
 # MeshWeaver Development Log
 
 ## Week 1 – Async Networking & Remote Execution
@@ -23,9 +24,28 @@ Successfully established basic asynchronous TCP communication between a client a
 
 ---
 
-### Day 2
+### Day 2 – 11 November 2026
 
-Progress to be updated.
+**Objective:** Implement structured messaging and concurrent client communication.
+
+**Work Completed:**
+- Implemented JSON serialization and deserialization.
+- Created a structured message protocol using `type`, `sender`, and `payload`.
+- Added newline-based TCP message framing.
+- Upgraded the server to handle multiple messages per connection.
+- Tested concurrent communication with three clients (Node-A, Node-B, Node-C).
+- Added serialization and protocol unit tests.
+
+**Testing:**
+- Verified persistent TCP communication.
+- Verified concurrent client handling.
+- All 8 automated tests passed.
+
+**Outcome:**
+
+MeshWeaver now supports structured JSON messaging, persistent TCP connections, and concurrent client communication.
+
+**Status:** Completed
 
 ---
 
