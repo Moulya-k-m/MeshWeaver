@@ -1,3 +1,4 @@
+
 import argparse
 import asyncio
 import hashlib
@@ -13,24 +14,42 @@ class ListenerProtocol(asyncio.DatagramProtocol):
         self.node_id = node_id
         self.transport = None
         self.handled = 0
+        self.invalid = 0
+        self.replied = 0
 
     def connection_made(self, transport):
         self.transport = transport
-        log.info("Node %s listening on %s", self.node_id[:8], transport.get_extra_info("sockname"))
+        log.info(
+            "Node %s listening on %s",
+            self.node_id[:8],
+            transport.get_extra_info("sockname")
+        )
 
     def datagram_received(self, data, addr):
-        # Never trust incoming bytes: validate before using them.
         try:
             msg = json.loads(data.decode("utf-8"))
+
             if not isinstance(msg, dict) or msg.get("type") != "PING":
                 raise ValueError("not a PING message")
+
             seq = msg["seq"]
+
+            if not isinstance(seq, int) or isinstance(seq, bool):
+                raise ValueError("invalid sequence number")
+
         except (ValueError, KeyError) as exc:
+            self.invalid += 1
             log.warning("Dropped bad packet from %s: %s", addr, exc)
             return
 
         self.handled += 1
-        log.info("PING seq=%s from node %s at %s", seq, str(msg.get("node_id", "?"))[:8], addr)
+
+        log.info(
+            "PING seq=%s from node %s at %s",
+            seq,
+            str(msg.get("node_id", "?"))[:8],
+            addr
+        )
 
         reply = {
             "type": "PONG",
@@ -38,34 +57,49 @@ class ListenerProtocol(asyncio.DatagramProtocol):
             "node_id": self.node_id,
             "echo_ts": msg.get("ts"),
         }
+
         self.transport.sendto(json.dumps(reply).encode("utf-8"), addr)
+        self.replied += 1
 
     def error_received(self, exc):
         log.warning("Socket error: %s", exc)
 
 
 async def main(host: str, port: int):
-    node_id = hashlib.sha1(uuid.uuid4().bytes).hexdigest()  # 160-bit, like Kademlia
+    node_id = hashlib.sha1(uuid.uuid4().bytes).hexdigest()
+
     loop = asyncio.get_running_loop()
+
     transport, protocol = await loop.create_datagram_endpoint(
         lambda: ListenerProtocol(node_id),
         local_addr=(host, port),
     )
+
     try:
         while True:
-            await asyncio.sleep(1)  # run forever, wakes every second so Ctrl+C works
+            await asyncio.sleep(1)
+
     finally:
-        log.info("Shutting down. Handled %d pings.", protocol.handled)
+        log.info("Shutting down.")
+        log.info("PINGs received: %d", protocol.handled)
+        log.info("Invalid packets: %d", protocol.invalid)
+        log.info("PONGs sent: %d", protocol.replied)
         transport.close()
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="MeshWeaver UDP listener node")
+    parser = argparse.ArgumentParser(description="MeshWeaver UDP listener")
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=9000)
+
     args = parser.parse_args()
 
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s", datefmt="%H:%M:%S")
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s %(levelname)s %(message)s",
+        datefmt="%H:%M:%S"
+    )
+
     try:
         asyncio.run(main(args.host, args.port))
     except KeyboardInterrupt:
