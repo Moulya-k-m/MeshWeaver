@@ -1,4 +1,7 @@
+
 import asyncio
+
+from meshweaver.protocol import create_message, encode_message, decode_message
 
 
 async def handle_client(reader, writer):
@@ -6,14 +9,27 @@ async def handle_client(reader, writer):
     print(f"Connected to {address}")
 
     try:
-        data = await reader.readline()
-        message = data.decode().strip()
+        while True:
+            data = await reader.readline()
 
-        print(f"Received: {message}")
+            if not data:
+                break
 
-        response = f"MeshWeaver received: {message}\n"
-        writer.write(response.encode())
-        await writer.drain()
+            try:
+                message = decode_message(data.decode().strip())
+                print(f"Received from {message['sender']}: {message['payload']}")
+
+                response = create_message(
+                    message_type="ack",
+                    sender="MeshWeaver",
+                    payload=f"Message received: {message['payload']}"
+                )
+
+                writer.write(encode_message(response).encode())
+                await writer.drain()
+
+            except Exception as error:
+                print(f"Error processing message: {error}")
 
     finally:
         writer.close()

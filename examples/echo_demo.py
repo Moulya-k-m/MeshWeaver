@@ -1,4 +1,7 @@
+
 import asyncio
+
+from meshweaver.protocol import create_message, encode_message, decode_message
 
 
 async def main():
@@ -7,15 +10,26 @@ async def main():
         8888
     )
 
-    message = "Hello MeshWeaver!"
+    messages = [
+        "Hello MeshWeaver!",
+        "Testing message 2",
+        "Testing message 3"
+    ]
 
-    print(f"Sending: {message}")
+    for text in messages:
+        message = create_message(
+            message_type="chat",
+            sender="Moulya",
+            payload=text
+        )
 
-    writer.write(f"{message}\n".encode())
-    await writer.drain()
+        writer.write(encode_message(message).encode())
+        await writer.drain()
 
-    response = await reader.readline()
-    print(f"Response: {response.decode().strip()}")
+        response = await reader.readline()
+        decoded_response = decode_message(response.decode().strip())
+
+        print(f"Response: {decoded_response}")
 
     writer.close()
     await writer.wait_closed()
