@@ -23,6 +23,7 @@ async def main(host: str, port: int):
         for msg in [
             {"type": "HELLO", "name": "node B"},
             {"type": "ADD", "a": 20, "b": 22},
+            {"type": "TIME"},
             {"type": "NOPE"},
         ]:
             reply = await request(reader, writer, msg)
