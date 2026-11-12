@@ -51,4 +51,24 @@ MeshWeaver now supports structured JSON messaging, persistent TCP connections, a
 
 ### Day 3
 
-Progress to be updated.
+## Day 3 – TCP Client & Communication
+
+### Work Completed
+- Implemented reusable asynchronous TCP client in `meshweaver/client.py`.
+- Integrated client with existing message protocol.
+- Implemented connection, send, receive, and close operations.
+- Created `examples/client_demo.py` for client-server communication.
+- Successfully established TCP connection with MeshWeaver server.
+- Verified JSON message exchange and ACK responses.
+- Tested multiple messages over a persistent connection.
+- Added automated integration tests in `tests/test_client.py`.
+
+### Testing
+- Existing protocol and serialization tests passed.
+- Client-server integration test passed.
+- Multiple-message communication test passed.
+- Total: 10 tests passed.
+
+### Outcome
+Successfully established bidirectional communication between MeshWeaver client and server using asynchronous TCP sockets.
+
