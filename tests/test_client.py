@@ -67,3 +67,21 @@ def test_multiple_messages():
 
     asyncio.run(run())
 
+
+def test_client_rejects_operations_when_disconnected():
+    async def run():
+        client = MeshClient("127.0.0.1", 9999)
+
+        try:
+            await client.send({"test": "message"})
+            assert False, "Expected ConnectionError"
+        except ConnectionError:
+            pass
+
+        try:
+            await client.receive()
+            assert False, "Expected ConnectionError"
+        except ConnectionError:
+            pass
+
+    asyncio.run(run())
