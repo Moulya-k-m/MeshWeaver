@@ -23,3 +23,5 @@ Thumbs.db
 .pytest_cache/
 .coverage
 htmlcov/
+day5_wk1/data/
+day5_wk1/journal_test.jsonl
