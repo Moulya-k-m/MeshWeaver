@@ -22,7 +22,7 @@ SEED_PORTS =  [50001, 50002, 50003]
 
 class Node:
 
-    def __init__(self, node_id, tcp_port):
+    def __init__(self, node_id, tcp_port,journal_path=None):
 
         self.node_id = node_id
         self.tcp_port = tcp_port
@@ -34,11 +34,12 @@ class Node:
         self.table = PeerTable()
 
         # Persistent task storage
-        journal_path = os.path.join(
-            os.path.dirname(os.path.abspath(__file__)),
-            "data",
-            f"node_{tcp_port}_tasks.jsonl"
-        )
+        if journal_path is None:
+            journal_path = os.path.join(
+                os.path.dirname(os.path.abspath(__file__)),
+                "data",
+                f"node_{tcp_port}_tasks.jsonl"
+            )
 
         self.store = TaskStore(
             node_id,
