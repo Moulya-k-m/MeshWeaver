@@ -4,6 +4,25 @@ import asyncio
 from meshweaver.protocol import create_message, encode_message, decode_message
 
 
+def execute_task(payload):
+    """Execute a supported remote task."""
+
+    operation = payload.get("operation")
+    args = payload.get("args", [])
+
+    if operation == "add":
+        return sum(args)
+
+    elif operation == "multiply":
+        result = 1
+        for number in args:
+            result *= number
+        return result
+
+    else:
+        raise ValueError(f"Unsupported operation: {operation}")
+
+
 async def handle_client(reader, writer):
     address = writer.get_extra_info("peername")
     print(f"Connected to {address}")
@@ -19,11 +38,29 @@ async def handle_client(reader, writer):
                 message = decode_message(data.decode().strip())
                 print(f"Received from {message['sender']}: {message['payload']}")
 
-                response = create_message(
-                    message_type="ack",
-                    sender="MeshWeaver",
-                    payload=f"Message received: {message['payload']}"
-                )
+                if message["type"] == "task":
+                    try:
+                        result = execute_task(message["payload"])
+
+                        response = create_message(
+                            message_type="result",
+                            sender="MeshWeaver",
+                            payload={"status": "success", "result": result}
+                        )
+
+                    except Exception as error:
+                        response = create_message(
+                            message_type="result",
+                            sender="MeshWeaver",
+                            payload={"status": "error", "error": str(error)}
+                        )
+
+                else:
+                    response = create_message(
+                        message_type="ack",
+                        sender="MeshWeaver",
+                        payload=f"Message received: {message['payload']}"
+                    )
 
                 writer.write(encode_message(response).encode())
                 await writer.drain()
