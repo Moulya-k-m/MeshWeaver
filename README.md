@@ -4,7 +4,7 @@
 
 MeshWeaver is a Python-based peer-to-peer asynchronous task broker designed to allow multiple nodes to communicate, exchange information, monitor resources, and distribute tasks efficiently.
 
-The project explores asynchronous networking, peer discovery, node health monitoring, resource sharing, load-aware scheduling, distributed task execution, persistent task recovery, message authentication, and system monitoring.
+The project explores asynchronous networking, peer discovery, node health monitoring, resource sharing, load-aware scheduling, distributed task execution, persistent task recovery, message authentication, system monitoring, and journal integrity auditing.
 
 ## Project Objectives
 
@@ -18,6 +18,7 @@ The project explores asynchronous networking, peer discovery, node health monito
 - Recover unfinished tasks after node restarts.
 - Secure node communication through message authentication.
 - Monitor the status and performance of the distributed network.
+- Verify persistent task recovery and detect journal inconsistencies.
 
 ## Technology Stack
 
@@ -27,7 +28,9 @@ The project explores asynchronous networking, peer discovery, node health monito
 - JSON message framing
 - Psutil for system resource monitoring
 - HMAC-SHA256 for message authentication
+- Cloudpickle for task serialization
 - Streamlit for web-based monitoring
+- Pytest for automated testing
 - Git and GitHub
 
 ## Week 1 Progress
@@ -39,7 +42,7 @@ The project explores asynchronous networking, peer discovery, node health monito
 | Day 3 | Peer discovery, failure detection, asynchronous task queue and task recovery testing | Completed |
 | Day 4 | Resource monitoring, resource gossip, load-aware scheduling, task forwarding, remote execution and automatic retries | Completed |
 | Day 5 | Persistent task journaling, HMAC authentication, indirect peer discovery and monitoring dashboards | Completed |
-| Day 6 | Further integration, result handling and distributed execution testing | Planned |
+| Day 6 | Persistent recovery verification, journal integrity auditing, interrupted-task detection and automated testing | Completed |
 | 16 November | Additional testing, documentation and reliability improvements | Planned |
 
 ## Project Structure
@@ -95,6 +98,14 @@ MeshWeaver/
 │   ├── test_task_recovery.py
 │   ├── dashboard.py
 │   ├── web_dashboard.py
+│   └── README.md
+│
+├── day6_wk1/
+│   ├── recovery_audit.py
+│   ├── test_recovery.py
+│   ├── test_journal_integrity.py
+│   ├── test_recovery_report.py
+│   ├── test_node_recovery.py
 │   └── README.md
 │
 ├── .gitignore
@@ -160,6 +171,28 @@ Added a Streamlit-based web dashboard to monitor multiple nodes through a browse
 
 Tested task journaling, restart recovery, message authentication, tamper detection, indirect peer discovery, authenticated communication, and dashboard monitoring in a local multi-node environment.
 
+### Day 6 – Persistent Recovery Verification and Journal Integrity Auditing
+
+Extended the persistence and recovery work from Day 5 by verifying that task states are correctly restored after restarting the task store and node.
+
+Implemented automated recovery tests to check the restoration of RUNNING tasks as PENDING, preservation of completed tasks, and recovery of multiple tasks from the same journal.
+
+Updated the Node constructor to support a configurable journal path, allowing recovery tests to use temporary journal files without interfering with existing node data.
+
+Developed a recovery auditing utility to inspect JSON Lines task journals and generate reports containing total tasks, task statuses, total journal events, and interrupted tasks.
+
+Added journal integrity checks to identify malformed entries, orphan updates, and duplicate task records.
+
+Implemented interrupted-task detection to identify tasks that were recorded as RUNNING and may require re-execution after a restart.
+
+Added a recovery report displaying task counts, status distribution, interrupted tasks, and journal health warnings.
+
+Verified that incomplete or malformed journal entries are skipped during journal replay while valid task records are restored.
+
+Tested the recovery auditor using actual journal files and a demonstration journal containing an interrupted task and a malformed entry.
+
+Executed the automated Day 6 test suite successfully, with all 9 tests passing and no failures.
+
 ## Upcoming Development
 
 The next development stages focus on:
@@ -179,6 +212,7 @@ The next development stages focus on:
 - [Day 3 – Peer Discovery and Task Management](day3_wk1/README.md)
 - [Day 4 – Resource Monitoring and Distributed Task Execution](day4_wk1/README.md)
 - [Day 5 – Persistence, Security, Peer Gossip and Monitoring](day5_wk1/README.md)
+- [Day 6 – Persistent Recovery Verification and Journal Integrity Auditing](day6_wk1/README.md)
 
 ## Current Limitations
 
@@ -188,11 +222,13 @@ The next development stages focus on:
 - Timestamp-based message freshness checks are implemented, but a dedicated nonce-based replay-prevention mechanism is not yet available.
 - Task recovery does not guarantee exactly-once execution. A task may be executed again after recovery if its previous execution completed but its final state was not recorded.
 - Persistent journaling records task state changes, but does not provide a fully persistent distributed result store.
+- The recovery auditor detects journal inconsistencies but does not automatically repair or truncate damaged journal files.
+- Incomplete or malformed journal entries are skipped during replay; automatic journal repair is not implemented.
 - The web dashboard currently uses manual refresh rather than continuous automatic refresh.
 - Testing has primarily been performed in controlled local multi-node environments; larger network and failure scenarios require further validation.
 
 ## Conclusion
 
-MeshWeaver has progressed from basic UDP and TCP communication to a multi-node asynchronous task broker with peer discovery, resource monitoring, load-aware scheduling, distributed task execution, retry handling, persistent task recovery, authenticated communication, and monitoring dashboards.
+MeshWeaver has progressed from basic UDP and TCP communication to a multi-node asynchronous task broker with peer discovery, resource monitoring, load-aware scheduling, distributed task execution, retry handling, persistent task recovery, authenticated communication, monitoring dashboards, and journal integrity auditing.
 
 The completed work establishes a foundation for a more reliable and scalable decentralized task-processing system. Further development will focus on integration, advanced task serialization, security improvements, and extensive distributed testing.
