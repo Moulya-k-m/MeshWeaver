@@ -30,9 +30,13 @@ def _mac(msg: dict) -> str:
 
 
 def sign(msg: dict) -> dict:
-    """Sign a copy of a message with timestamp and HMAC."""
+    """Sign a message, replacing any existing signature."""
 
     out = dict(msg)
+
+    # Remove an old signature before generating a new one.
+    out.pop("sig", None)
+
     out["ts"] = time.time()
     out["sig"] = _mac(out)
 
@@ -74,3 +78,4 @@ def verify(msg) -> bool:
 
     except (TypeError, ValueError):
         return False
+

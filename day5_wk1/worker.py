@@ -1,12 +1,35 @@
 
 import asyncio
 import logging
+import sys
+from pathlib import Path
+
+# Import Day 7 serializer
+sys.path.insert(
+    0,
+    str(Path(__file__).resolve().parent.parent / "day7_wk1")
+)
+
+from serializer import deserialize_call
 
 
 def execute_task(payload):
     """Execute a supported task operation."""
 
     operation = payload.get("operation", "ECHO")
+
+    # Execute a remotely serialized Python function
+    if operation == "REMOTE_CALL":
+
+        encoded = payload.get("encoded")
+
+        if not encoded:
+            raise ValueError("Missing serialized function")
+
+        function, args, kwargs = deserialize_call(encoded)
+
+        return function(*args, **kwargs)
+
     a = payload.get("a", 0)
     b = payload.get("b", 0)
 

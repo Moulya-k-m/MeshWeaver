@@ -17,12 +17,12 @@ from worker import worker_loop
 from security import sign, verify
 
 
-SEED_PORTS =  [50001, 50002, 50003]
+SEED_PORTS = [50001, 50002, 50003]
 
 
 class Node:
 
-    def __init__(self, node_id, tcp_port,journal_path=None):
+    def __init__(self, node_id, tcp_port, journal_path=None):
 
         self.node_id = node_id
         self.tcp_port = tcp_port
@@ -30,10 +30,8 @@ class Node:
 
         self.started = time.monotonic()
 
-        # Peer management
         self.table = PeerTable()
 
-        # Persistent task storage
         if journal_path is None:
             journal_path = os.path.join(
                 os.path.dirname(os.path.abspath(__file__)),
@@ -46,13 +44,10 @@ class Node:
             journal_path=journal_path
         )
 
-        # Track tasks forwarded to other nodes
         self.remote_tasks = {}
 
-        # Load-based scheduler
         self.scheduler = Scheduler(self.table)
 
-        # Resource gossip
         self.gossip = ResourceGossip(
             node_id=node_id,
             peer_table=self.table,
@@ -63,7 +58,6 @@ class Node:
             interval=5.0,
         )
 
-        # UDP discovery
         self.discovery = Discovery(
             node_id,
             tcp_port,
@@ -83,7 +77,6 @@ class Node:
     def current_load(self):
         return snapshot(self.store.active_count())
 
-    # Send a signed request and verify the response
     async def request_peer(self, host, port, message):
 
         reader, writer = await asyncio.wait_for(
@@ -92,7 +85,6 @@ class Node:
         )
 
         try:
-
             signed_message = sign(message)
 
             await write_msg(writer, signed_message)
@@ -110,7 +102,6 @@ class Node:
             return response
 
         finally:
-
             writer.close()
             await writer.wait_closed()
 
@@ -118,7 +109,6 @@ class Node:
 
         kind = req.get("type") if isinstance(req, dict) else None
 
-        # Peer discovery information
         if kind == "PEERS":
 
             return {
@@ -129,7 +119,6 @@ class Node:
                 ],
             }
 
-        # Node health and resource information
         if kind == "STATUS":
 
             return {
@@ -143,7 +132,6 @@ class Node:
                 "peer_count": len(self.table.peers),
             }
 
-        # Exchange resource information
         if kind == "LOAD_REPORT":
 
             sender = req.get("node_id")
@@ -163,13 +151,11 @@ class Node:
                     sender[:8],
                 )
 
-            # Corrected acknowledgement name
             return {
                 "type": "LOAD_REPORT_ACK" if accepted
                 else "LOAD_REJECTED"
             }
 
-        # Submit a task locally or forward it
         if kind == "SUBMIT_TASK":
 
             payload = req.get("payload")
@@ -186,11 +172,34 @@ class Node:
                 exclude=self.node_id
             )
 
+            logging.info(
+                "LOCAL LOAD SCORE: %.2f",
+                local_score
+            )
+
+            if peer:
+
+                logging.info(
+                    "PEER LOAD SCORE: %.2f | PEER: %s",
+                    peer["load_score"],
+                    peer["node_id"][:8]
+                )
+
+            else:
+
+                logging.info("NO ELIGIBLE PEER FOUND")
+
             if peer and peer["load_score"] < local_score:
 
                 task_id = uuid.uuid4().hex[:8]
 
                 try:
+
+                    logging.info(
+                        "Attempting to forward task %s to peer %s",
+                        task_id,
+                        peer["node_id"][:8],
+                    )
 
                     response = await self.request_peer(
                         peer["host"],
@@ -213,7 +222,7 @@ class Node:
                         }
 
                         logging.info(
-                            "Task %s forwarded to peer %s",
+                            "Task %s successfully forwarded to peer %s",
                             task_id,
                             peer["node_id"][:8],
                         )
@@ -224,6 +233,11 @@ class Node:
                             "node_id": peer["node_id"],
                             "forwarded": True,
                         }
+
+                    logging.warning(
+                        "Peer rejected forwarded task: %s",
+                        response,
+                    )
 
                 except (
                     ConnectionError,
@@ -236,7 +250,11 @@ class Node:
                         peer["node_id"][:8],
                     )
 
-            # Execute locally if forwarding is unavailable
+            logging.info(
+                "Executing task locally on node %s",
+                self.node_id[:8],
+            )
+
             task_id = await self.store.add(
                 payload,
                 origin=self.node_id,
@@ -249,7 +267,6 @@ class Node:
                 "forwarded": False,
             }
 
-        # Receive a task forwarded by another node
         if kind == "FORWARD_TASK":
 
             payload = req.get("payload")
@@ -277,13 +294,18 @@ class Node:
                 origin=req.get("origin"),
             )
 
+            logging.info(
+                "Accepted forwarded task %s from node %s",
+                task_id,
+                str(req.get("origin", "unknown"))[:8],
+            )
+
             return {
                 "type": "TASK_ACCEPTED",
                 "task_id": task_id,
                 "node_id": self.node_id,
             }
 
-        # Retrieve a task result
         if kind == "GET_RESULT":
 
             task_id = req.get("task_id")
@@ -332,7 +354,6 @@ class Node:
                 "error": task.error,
             }
 
-        # Basic connection test
         if kind == "HELLO":
 
             return {
@@ -345,7 +366,6 @@ class Node:
             "reason": f"Unsupported request: {kind}",
         }
 
-    # Verify incoming requests and sign outgoing responses
     async def handle_client(self, reader, writer):
 
         try:
@@ -412,7 +432,6 @@ class Node:
 
         loop = asyncio.get_running_loop()
 
-        # Start UDP discovery
         transport, _ = await loop.create_datagram_endpoint(
             lambda: self.discovery,
             local_addr=("127.0.0.1", self.udp_port),
@@ -423,7 +442,6 @@ class Node:
 
         try:
 
-            # Start TCP server
             server = await asyncio.start_server(
                 self.handle_client,
                 "127.0.0.1",
@@ -448,7 +466,6 @@ class Node:
                 self.store.restored,
             )
 
-            # Start background operations
             gossip_task = asyncio.create_task(
                 self.gossip.gossip_loop(send_load_report)
             )
@@ -477,26 +494,21 @@ class Node:
 
         finally:
 
-            # Cancel background tasks
             for task in background_tasks:
                 task.cancel()
 
             if background_tasks:
-
                 await asyncio.gather(
                     *background_tasks,
                     return_exceptions=True,
                 )
 
-            # Close TCP server
             if server is not None:
                 server.close()
                 await server.wait_closed()
 
-            # Close UDP transport
             transport.close()
 
-            # Close persistent journal
             self.store.close()
 
             logging.info(
