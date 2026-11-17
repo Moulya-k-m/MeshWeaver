@@ -4,7 +4,7 @@
 
 MeshWeaver is a Python-based peer-to-peer asynchronous task broker designed to allow multiple nodes to communicate, exchange information, monitor resources, and distribute computational tasks efficiently.
 
-The project explores asynchronous networking, peer discovery, node health monitoring, resource sharing, load-aware scheduling, distributed task execution, function serialization, persistent task recovery, message authentication, system monitoring, and journal integrity auditing.
+The project explores asynchronous networking, peer discovery, node health monitoring, resource sharing, load-aware scheduling, distributed task execution, function serialization, persistent task recovery, message authentication, system monitoring, journal integrity auditing, and decentralized peer discovery mechanisms.
 
 Unlike traditional centralized task brokers, MeshWeaver aims to distribute task-processing responsibilities across multiple connected nodes without depending on a central message broker such as Redis or RabbitMQ.
 
@@ -23,6 +23,8 @@ Unlike traditional centralized task brokers, MeshWeaver aims to distribute task-
 - Monitor the status and performance of the distributed network.
 - Verify persistent task recovery and detect journal inconsistencies.
 - Explore scalable decentralized peer discovery mechanisms.
+- Implement XOR-based node distance calculation.
+- Develop Kademlia-inspired routing tables and peer lookup mechanisms.
 
 ## Technology Stack
 
@@ -34,6 +36,9 @@ Unlike traditional centralized task brokers, MeshWeaver aims to distribute task-
 - HMAC-SHA256 for message authentication
 - Cloudpickle for Python function serialization
 - Base64 for encoded serialized data
+- Secrets for secure random node identity generation
+- Dataclasses for peer information management
+- JSON for peer information serialization
 - Streamlit for web-based monitoring
 - Pytest and Python test scripts for automated testing
 - Git and GitHub
@@ -49,6 +54,18 @@ Unlike traditional centralized task brokers, MeshWeaver aims to distribute task-
 | Day 5 | Persistent task journaling, HMAC authentication, indirect peer discovery and monitoring dashboards | Completed |
 | Day 6 | Persistent recovery verification, journal integrity auditing and automated testing | Completed |
 | Day 7 | Function serialization, remote function execution and two-node load-based task distribution | Completed |
+
+## Week 2 Progress
+
+| Day | Work | Status |
+|---|---|---|
+| Day 8 | DHT foundation, 160-bit node identity generation, XOR distance calculation, peer information management and JSON serialization | Completed |
+| Day 9 | Kademlia routing tables and K-bucket implementation | Planned |
+| Day 10 | Bootstrap mechanism and dynamic node joining | Planned |
+| Day 11 | Iterative peer lookup and node discovery | Planned |
+| Day 12 | Gossip resource monitoring and CPU/RAM status collection | Planned |
+| Day 13 | Asynchronous background gossip tasks with 5-second resource updates | Planned |
+| Day 14 | DHT and gossip integration, multi-node testing and reliability improvements | Planned |
 
 ## Project Structure
 
@@ -119,6 +136,14 @@ MeshWeaver/
 │   ├── test_worker.py
 │   ├── test_remote_execution.py
 │   ├── test_load_balance.py
+│   └── README.md
+│
+├── day8_wk2/
+│   ├── node_identity.py
+│   ├── peer_info.py
+│   ├── test_day8.py
+│   ├── test_edge_cases.py
+│   ├── test_serialization.py
 │   └── README.md
 │
 ├── .gitignore
@@ -238,6 +263,53 @@ Submitted eight tasks through Node 1. All eight tasks were successfully forwarde
 
 This demonstrated successful load-based task distribution and remote execution across two independent MeshWeaver nodes.
 
+### Day 8 – DHT Foundation, Node Identity and Peer Information Management
+
+Established the foundation for implementing a lightweight Kademlia-inspired Distributed Hash Table (DHT) in MeshWeaver.
+
+Implemented unique 160-bit node identifier generation using Python's `secrets` module. Each node identifier is represented as a 40-character hexadecimal string.
+
+Added node ID validation to verify the correct hexadecimal format and identifier length before using node identities in distance calculations and peer records.
+
+Implemented XOR-based distance calculation between two node identifiers using Python's bitwise XOR operator. This provides the mathematical foundation for organizing peers within the Kademlia identifier space.
+
+Developed a `PeerInfo` dataclass to store peer information, including:
+
+- Unique node ID.
+- IP address.
+- Communication port.
+- Last-seen timestamp.
+
+Added peer validation to reject invalid node identifiers, empty IP address values, and port numbers outside the valid range.
+
+Implemented peer activity timestamp updates to record the latest observed activity of a peer.
+
+Introduced peer information serialization using JSON-compatible dictionaries. The `to_dict()` method converts peer records into transferable dictionary representations, while the `from_dict()` class method reconstructs PeerInfo objects from received dictionary data.
+
+Created dedicated integration, edge-case and serialization tests to verify the implemented components.
+
+**Testing and Verification:**
+
+- Verified successful generation and validation of 160-bit node identities.
+- Tested XOR distance calculation using predefined node IDs.
+- Verified that identical node IDs produce zero XOR distance.
+- Tested XOR symmetry and non-negative distance properties.
+- Verified that different node IDs produce non-zero distance.
+- Tested rejection of invalid node IDs and invalid peer ports.
+- Verified peer information creation and timestamp updates.
+- Tested integration between node identity generation, XOR distance calculation and peer management.
+- Verified JSON serialization and deserialization of peer information.
+
+The integration test completed successfully.
+
+All 9 edge-case and XOR property tests passed.
+
+Serialization and deserialization tests passed, confirming that the reconstructed peer information preserved its original values.
+
+**Result:** Day 8 successfully established the node identity, XOR distance and peer information foundation required for the upcoming Kademlia routing implementation.
+
+Actual DHT routing tables, dynamic node joining and network-level peer lookup remain planned for subsequent milestones.
+
 ## Week 1 Overall Achievements
 
 By the end of Week 1, MeshWeaver progressed from basic network communication to a distributed task-processing system with the following capabilities:
@@ -259,22 +331,36 @@ By the end of Week 1, MeshWeaver progressed from basic network communication to 
 - Python function serialization and deserialization.
 - Distributed execution of serialized functions.
 
+## Week 2 Overall Achievements So Far
+
+By the end of Day 8, the initial DHT foundation has been established through:
+
+- 160-bit node identity generation.
+- Node ID validation.
+- XOR-based logical distance calculation.
+- Peer information data structures.
+- Peer activity timestamp management.
+- Peer information serialization and deserialization.
+- Integration and edge-case testing.
+
+The next milestones will extend these foundations into routing tables, dynamic peer discovery, and periodic resource gossip.
+
 ## Upcoming Development – Week 2
 
 The next development phase will focus on improving decentralized peer discovery, routing, and distributed execution.
 
 Planned development areas include:
 
-1. Understanding and implementing XOR-based node distance calculation.
-2. Building a Distributed Hash Table (DHT) foundation.
-3. Implementing node lookup and peer routing mechanisms.
-4. Exploring Kademlia-style peer discovery.
-5. Improving distributed task routing across multiple nodes.
-6. Handling unavailable peers and routing failures.
-7. Testing peer discovery and routing in larger multi-node environments.
-8. Improving integration between task distribution, execution and result retrieval.
-
-These are planned enhancements and have not yet been implemented.
+1. Implementing Kademlia-style routing tables using K-buckets.
+2. Organizing peers based on XOR distance.
+3. Developing a bootstrap mechanism for new nodes.
+4. Enabling dynamic node joining and peer discovery.
+5. Implementing iterative peer lookup.
+6. Extending resource gossip with asynchronous background tasks.
+7. Sharing CPU and RAM utilization reports with neighboring nodes every 5 seconds.
+8. Integrating DHT peer information with existing task distribution.
+9. Improving peer failure handling and routing reliability.
+10. Testing DHT and gossip integration in multi-node environments.
 
 ## Documentation
 
@@ -285,11 +371,19 @@ These are planned enhancements and have not yet been implemented.
 - [Day 5 – Persistence, Security, Peer Gossip and Monitoring](day5_wk1/README.md)
 - [Day 6 – Persistent Recovery Verification and Journal Integrity Auditing](day6_wk1/README.md)
 - [Day 7 – Function Serialization, Remote Execution and Load-Based Task Distribution](day7_wk1/README.md)
+- [Day 8 – DHT Foundation and Peer Information Management](day8_wk2/README.md)
 
 ## Current Limitations
 
 - Peer discovery currently uses UDP announcements and configured seed ports; a full Kademlia-based DHT is not yet implemented.
+- The Day 8 implementation establishes node identity and XOR distance calculation but does not yet include routing tables or K-bucket management.
 - Indirectly learned peers remain unconfirmed until direct communication establishes their availability.
+- Dynamic node joining and iterative peer lookup are planned for upcoming Week 2 milestones.
+- The current peer information serialization converts objects into JSON-compatible dictionaries, but actual network transmission of these Day 8 peer records is not yet implemented.
+- Node identities are randomly generated at startup; persistent identity storage across application restarts remains to be implemented.
+- Peer information is currently maintained as individual records; automatic routing table updates and stale-peer removal are not yet implemented.
+- IP address validation currently checks for a non-empty string rather than verifying the complete IP address format.
+- The last-seen timestamp can be updated manually, but automatic peer health monitoring and stale-peer removal are not yet implemented in the Day 8 module.
 - HMAC authentication relies on a shared secret configured through an environment variable.
 - Timestamp-based message freshness checks are implemented, but a dedicated nonce-based replay-prevention mechanism is not yet available.
 - Task recovery does not guarantee exactly-once execution. A task may be executed again after recovery if its previous execution completed but its final state was not recorded.
@@ -309,6 +403,10 @@ MeshWeaver has progressed from basic UDP and TCP communication to a multi-node a
 
 The successful execution of eight forwarded tasks across two independent nodes demonstrates the progress made toward decentralized computational task distribution.
 
-Week 1 establishes the foundation for distributed task processing. The next phase will focus on scalable peer discovery, DHT-based routing, and improved coordination between distributed nodes.
+Week 1 established the foundation for distributed task processing, while Day 8 of Week 2 introduced the initial components required for decentralized node identification and Kademlia-inspired peer organization.
+
+The implementation of 160-bit node identities, XOR distance calculation and peer information serialization provides the groundwork for routing tables, dynamic node joining and distributed peer lookup.
+
+The next phase will focus on implementing Kademlia-style routing mechanisms and strengthening resource gossip to improve peer discovery, network awareness and task distribution.
 
 The long-term goal is to develop a reliable, secure, and scalable peer-to-peer asynchronous task broker without depending on a centralized message broker.
