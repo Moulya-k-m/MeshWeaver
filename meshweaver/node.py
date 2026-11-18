@@ -19,6 +19,20 @@ def execute_task(payload):
             result *= number
         return result
 
+    elif operation == "divide":
+        if len(args) < 2:
+            raise ValueError("Division requires at least two numbers")
+
+        result = args[0]
+
+        for number in args[1:]:
+            if number == 0:
+                raise ZeroDivisionError("Cannot divide by zero")
+
+            result /= number
+
+        return result
+
     else:
         raise ValueError(f"Unsupported operation: {operation}")
 
