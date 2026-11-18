@@ -60,7 +60,7 @@ Unlike traditional centralized task brokers, MeshWeaver aims to distribute task-
 | Day | Work | Status |
 |---|---|---|
 | Day 8 | DHT foundation, 160-bit node identity generation, XOR distance calculation, peer information management and JSON serialization | Completed |
-| Day 9 | Kademlia routing tables and K-bucket implementation | Planned |
+| Day 9 | Advanced Kademlia routing table, K-Bucket implementation, peer management and closest-peer lookup | Completed |
 | Day 10 | Bootstrap mechanism and dynamic node joining | Planned |
 | Day 11 | Iterative peer lookup and node discovery | Planned |
 | Day 12 | Gossip resource monitoring and CPU/RAM status collection | Planned |
@@ -144,6 +144,13 @@ MeshWeaver/
 │   ├── test_day8.py
 │   ├── test_edge_cases.py
 │   ├── test_serialization.py
+│   └── README.md
+│
+├── day9_wk2/
+│   ├── __init__.py
+│   ├── peer.py
+│   ├── routing_table.py
+│   ├── test_routing.py
 │   └── README.md
 │
 ├── .gitignore
@@ -308,7 +315,107 @@ Serialization and deserialization tests passed, confirming that the reconstructe
 
 **Result:** Day 8 successfully established the node identity, XOR distance and peer information foundation required for the upcoming Kademlia routing implementation.
 
-Actual DHT routing tables, dynamic node joining and network-level peer lookup remain planned for subsequent milestones.
+Actual DHT routing tables, dynamic node joining and network-level peer lookup remained planned for subsequent milestones.
+
+### Day 9 – Advanced Kademlia Routing Table and Peer Management
+
+Extended the Day 8 DHT foundation by implementing an advanced Kademlia-inspired routing table for MeshWeaver.
+
+Implemented node ID validation and SHA-1-based 160-bit node identity generation for routing table operations and testing.
+
+Developed XOR-based distance calculation to determine the logical distance between the local node and other peer identities.
+
+Implemented the K-Bucket data structure to organize known peers according to their XOR distance from the local node.
+
+Created a routing table containing 160 K-Buckets corresponding to the 160-bit node identifier space.
+
+Developed a reusable `Peer` dataclass to store peer information, including:
+
+- Unique 160-bit node ID.
+- IP address.
+- Communication port.
+- Last-seen timestamp.
+
+Added peer validation during object creation to ensure valid node IDs, non-empty IP addresses and port numbers within the range of 1–65535.
+
+Implemented peer activity timestamp updates and dictionary-based peer information representation.
+
+**K-Bucket Management:**
+
+- Implemented configurable bucket capacity.
+- Added peer insertion and removal operations.
+- Prevented duplicate peer entries.
+- Refreshed existing peers when they were encountered again.
+- Maintained peer ordering based on recent activity.
+- Handled full-bucket conditions.
+
+**Routing Table Management:**
+
+- Created 160 routing buckets for each local node.
+- Calculated XOR distance between local and remote node identities.
+- Determined the appropriate bucket using the highest set bit of the XOR distance.
+- Registered peers in their corresponding buckets.
+- Prevented the local node from being added to its own routing table.
+- Maintained peer information across multiple buckets.
+
+**Peer Replacement:**
+
+Implemented a basic full-bucket replacement mechanism.
+
+- Identified the oldest peer in a full bucket.
+- Supported checking peer availability through a ping callback.
+- Retained and refreshed an existing peer if it responded.
+- Replaced an existing peer when the replacement policy determined it should be removed.
+
+**Closest-Peer Lookup:**
+
+Implemented closest-peer identification using XOR distance.
+
+- Collected peers from all routing buckets.
+- Calculated XOR distance between each peer and a target node.
+- Sorted peers according to increasing XOR distance.
+- Returned the requested number of closest peers.
+
+**Routing Table Statistics:**
+
+Added routing table statistics to monitor the current peer distribution, including:
+
+- Total number of known peers.
+- Number of active routing buckets.
+- Total number of routing buckets.
+- Configured bucket capacity.
+
+**Testing and Verification:**
+
+Created an automated unit testing module using Python's built-in `unittest` framework.
+
+Verified the following functionalities:
+
+- Peer insertion into routing buckets.
+- Closest-peer lookup using XOR distance.
+- Duplicate peer detection and refresh.
+- Prevention of self-node registration.
+- Routing table statistics.
+- XOR distance calculation and symmetry.
+
+**Test Results:**
+
+- Peer insertion – Passed.
+- Closest-peer lookup – Passed.
+- Duplicate peer refresh – Passed.
+- Self-node prevention – Passed.
+- Routing table statistics – Passed.
+- XOR distance calculation – Passed.
+
+**Total Tests: 6**
+
+**Passed: 6**
+
+**Failed: 0**
+
+**Result:** Day 9 successfully implemented and tested the Kademlia routing table foundation, establishing structured peer management, K-Bucket organization and XOR-based closest-peer identification.
+
+The routing table provides the foundation for subsequent bootstrap-based peer discovery, dynamic node joining and iterative peer lookup.
 
 ## Week 1 Overall Achievements
 
@@ -333,17 +440,24 @@ By the end of Week 1, MeshWeaver progressed from basic network communication to 
 
 ## Week 2 Overall Achievements So Far
 
-By the end of Day 8, the initial DHT foundation has been established through:
+By the end of Day 9, MeshWeaver has established the initial DHT foundation and implemented a structured Kademlia-inspired routing table.
 
-- 160-bit node identity generation.
-- Node ID validation.
+Completed capabilities include:
+
+- 160-bit node identity generation and validation.
 - XOR-based logical distance calculation.
 - Peer information data structures.
 - Peer activity timestamp management.
 - Peer information serialization and deserialization.
-- Integration and edge-case testing.
+- 160 K-Bucket routing table organization.
+- Configurable bucket capacity.
+- Duplicate peer detection and refresh.
+- Full-bucket peer replacement support.
+- Closest-peer lookup using XOR distance.
+- Routing table statistics.
+- Automated routing table unit testing.
 
-The next milestones will extend these foundations into routing tables, dynamic peer discovery, and periodic resource gossip.
+The next milestones will extend these foundations into bootstrap-based peer discovery, dynamic node joining, iterative peer lookup and periodic resource gossip.
 
 ## Upcoming Development – Week 2
 
@@ -351,16 +465,14 @@ The next development phase will focus on improving decentralized peer discovery,
 
 Planned development areas include:
 
-1. Implementing Kademlia-style routing tables using K-buckets.
-2. Organizing peers based on XOR distance.
-3. Developing a bootstrap mechanism for new nodes.
-4. Enabling dynamic node joining and peer discovery.
-5. Implementing iterative peer lookup.
-6. Extending resource gossip with asynchronous background tasks.
-7. Sharing CPU and RAM utilization reports with neighboring nodes every 5 seconds.
-8. Integrating DHT peer information with existing task distribution.
-9. Improving peer failure handling and routing reliability.
-10. Testing DHT and gossip integration in multi-node environments.
+1. Developing a bootstrap mechanism for new nodes.
+2. Enabling dynamic node joining and peer discovery.
+3. Implementing iterative peer lookup.
+4. Extending resource gossip with asynchronous background tasks.
+5. Sharing CPU and RAM utilization reports with neighboring nodes every 5 seconds.
+6. Integrating DHT peer information with existing task distribution.
+7. Improving peer failure handling and routing reliability.
+8. Testing DHT and gossip integration in multi-node environments.
 
 ## Documentation
 
@@ -372,18 +484,20 @@ Planned development areas include:
 - [Day 6 – Persistent Recovery Verification and Journal Integrity Auditing](day6_wk1/README.md)
 - [Day 7 – Function Serialization, Remote Execution and Load-Based Task Distribution](day7_wk1/README.md)
 - [Day 8 – DHT Foundation and Peer Information Management](day8_wk2/README.md)
+- [Day 9 – Advanced Kademlia Routing Table and Peer Management](day9_wk2/README.md)
 
 ## Current Limitations
 
 - Peer discovery currently uses UDP announcements and configured seed ports; a full Kademlia-based DHT is not yet implemented.
-- The Day 8 implementation establishes node identity and XOR distance calculation but does not yet include routing tables or K-bucket management.
+- The Day 8 implementation establishes node identity and XOR distance calculation, while Day 9 introduces routing tables and K-Bucket management. Full iterative DHT lookup is still pending.
 - Indirectly learned peers remain unconfirmed until direct communication establishes their availability.
 - Dynamic node joining and iterative peer lookup are planned for upcoming Week 2 milestones.
-- The current peer information serialization converts objects into JSON-compatible dictionaries, but actual network transmission of these Day 8 peer records is not yet implemented.
-- Node identities are randomly generated at startup; persistent identity storage across application restarts remains to be implemented.
-- Peer information is currently maintained as individual records; automatic routing table updates and stale-peer removal are not yet implemented.
-- IP address validation currently checks for a non-empty string rather than verifying the complete IP address format.
-- The last-seen timestamp can be updated manually, but automatic peer health monitoring and stale-peer removal are not yet implemented in the Day 8 module.
+- The Day 8 peer information serialization converts objects into JSON-compatible dictionaries, but actual network transmission of those Day 8 peer records is not yet implemented.
+- Node identities are randomly generated at startup in the Day 8 implementation; persistent identity storage across application restarts remains to be implemented.
+- Peer information is currently maintained as individual records and routing table entries; automatic stale-peer removal and periodic routing table maintenance remain future improvements.
+- IP address validation currently checks for a non-empty string in the Day 9 Peer data structure rather than verifying the complete IP address format.
+- The last-seen timestamp can be updated manually, but automatic peer health monitoring and stale-peer removal are not yet implemented in the Day 9 routing table module.
+- The Day 9 routing table supports a ping callback interface for full-bucket peer replacement, but actual network-level ping integration remains to be implemented.
 - HMAC authentication relies on a shared secret configured through an environment variable.
 - Timestamp-based message freshness checks are implemented, but a dedicated nonce-based replay-prevention mechanism is not yet available.
 - Task recovery does not guarantee exactly-once execution. A task may be executed again after recovery if its previous execution completed but its final state was not recorded.
@@ -403,10 +517,10 @@ MeshWeaver has progressed from basic UDP and TCP communication to a multi-node a
 
 The successful execution of eight forwarded tasks across two independent nodes demonstrates the progress made toward decentralized computational task distribution.
 
-Week 1 established the foundation for distributed task processing, while Day 8 of Week 2 introduced the initial components required for decentralized node identification and Kademlia-inspired peer organization.
+Week 1 established the foundation for distributed task processing, while Week 2 introduced the components required for decentralized node identification and Kademlia-inspired peer organization.
 
-The implementation of 160-bit node identities, XOR distance calculation and peer information serialization provides the groundwork for routing tables, dynamic node joining and distributed peer lookup.
+The implementation of 160-bit node identities, XOR distance calculation, peer information management, K-Bucket routing tables and closest-peer lookup provides the groundwork for bootstrap-based node joining and distributed peer discovery.
 
-The next phase will focus on implementing Kademlia-style routing mechanisms and strengthening resource gossip to improve peer discovery, network awareness and task distribution.
+The next phase will focus on implementing bootstrap mechanisms, iterative peer lookup and strengthening resource gossip to improve peer discovery, network awareness and task distribution.
 
 The long-term goal is to develop a reliable, secure, and scalable peer-to-peer asynchronous task broker without depending on a centralized message broker.
