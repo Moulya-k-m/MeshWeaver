@@ -141,3 +141,32 @@ To establish basic peer-to-peer communication between nodes using Python UDP soc
 **Next Step:** Transfer serialized Python functions between Node A and Node B using UDP communication.
 
 **Note:** Current communication examples use localhost and represent initial prototypes. Full distributed P2P networking and multi-node discovery are still pending.
+---
+
+### Day 4 - Serialized Function Transfer
+**Date:** 12 November 2026
+
+**Tasks Completed:**
+- Implemented UDP transfer of serialized Python functions.
+- Created function sender and receiver scripts.
+- Deserialized the received function on Node B.
+
+**Files Created:**
+- examples/function_sender.py
+- examples/function_receiver.py
+
+**Status:** COMPLETED
+
+---
+
+### Day 5 - Remote Function Execution
+**Date:** 13 November 2026
+
+**Tasks Completed:**
+- Executed a received function on Node B.
+- Returned the execution result to Node A.
+- Verified calculate_square(25) returned 625.
+
+**Test Result:** PASSED
+
+**Status:** COMPLETED

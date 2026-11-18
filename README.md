@@ -115,4 +115,17 @@
 
 **Current Milestone:** Successfully implemented and tested synchronous UDP communication, asynchronous UDP communication, and local function serialization/deserialization.
 
-**Next Milestone:** Transfer a serialized Python function from Node A to Node B and prepare for remote execution.
+**Next Milestone:** Transfer a serialized Python function from Node A to Node B and prepare for remote execution.## Trusted-localhost async broker prototype (Nov 18)
+
+Install `cloudpickle` in the existing virtual environment, then run:
+
+```powershell
+python -m unittest discover -s tests -v
+python -m meshweaver.demo
+```
+
+This demonstrates concurrent task submissions, unique task IDs, ACK messages,
+result responses, timeout/retry handling, error reporting and a bounded cache of
+completed task results. It is a **localhost-only educational prototype**, not a
+production-ready peer-to-peer system. Never deserialize untrusted cloudpickle
+payloads. See `docs/nov18-progress.md` for limitations.
