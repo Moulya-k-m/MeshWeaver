@@ -25,6 +25,7 @@ Unlike traditional centralized task brokers, MeshWeaver aims to distribute task-
 - Explore scalable decentralized peer discovery mechanisms.
 - Implement XOR-based node distance calculation.
 - Develop Kademlia-inspired routing tables and peer lookup mechanisms.
+- Enable bootstrap-based peer discovery and dynamic node joining.
 
 ## Technology Stack
 
@@ -61,7 +62,7 @@ Unlike traditional centralized task brokers, MeshWeaver aims to distribute task-
 |---|---|---|
 | Day 8 | DHT foundation, 160-bit node identity generation, XOR distance calculation, peer information management and JSON serialization | Completed |
 | Day 9 | Advanced Kademlia routing table, K-Bucket implementation, peer management and closest-peer lookup | Completed |
-| Day 10 | Bootstrap mechanism and dynamic node joining | Planned |
+| Day 10 | Bootstrap mechanism, dynamic node joining, peer registration and bootstrap-based peer discovery | Completed |
 | Day 11 | Iterative peer lookup and node discovery | Planned |
 | Day 12 | Gossip resource monitoring and CPU/RAM status collection | Planned |
 | Day 13 | Asynchronous background gossip tasks with 5-second resource updates | Planned |
@@ -152,6 +153,13 @@ MeshWeaver/
 │   ├── routing_table.py
 │   ├── test_routing.py
 │   └── README.md
+│
+├── day10_wk2/
+│   ├── bootstrap.py
+│   ├── peer_discovery.py
+│   ├── test_discovery.py
+│   ├── README.md
+│   └── __init__.py
 │
 ├── .gitignore
 ├── README.md
@@ -417,6 +425,51 @@ Verified the following functionalities:
 
 The routing table provides the foundation for subsequent bootstrap-based peer discovery, dynamic node joining and iterative peer lookup.
 
+### Day 10 – Bootstrap Mechanism and Dynamic Node Joining
+
+Extended the Kademlia-inspired DHT implementation by introducing a bootstrap mechanism that allows new MeshWeaver nodes to join an existing peer network.
+
+Developed a TCP-based Bootstrap Server to act as an initial contact point for nodes joining the network.
+
+Implemented a JOIN request-response mechanism through which a new node registers its Node ID, IP address and communication port with the bootstrap server.
+
+Added peer registration using the existing Kademlia-inspired routing table, allowing the bootstrap server to maintain information about participating nodes.
+
+Implemented peer discovery responses that provide joining nodes with information about previously registered peers, enabling them to learn about other nodes in the network.
+
+Developed a `PeerDiscovery` component to establish asynchronous TCP connections with the bootstrap server, submit JOIN requests and process received peer information.
+
+Integrated the discovery mechanism with the Day 9 routing table so that discovered peers are registered locally and maintained for subsequent peer lookup operations.
+
+Added validation and error handling for invalid requests, connection failures, malformed responses and discovery timeouts.
+
+**Testing and Verification:**
+
+- Verified successful startup and operation of the bootstrap server.
+- Tested first-node joining when no other peers were registered.
+- Verified registration of newly joining nodes.
+- Tested discovery of previously registered peers.
+- Verified that discovered peers are added to the local routing table.
+- Tested peer information exchange between multiple joining nodes.
+- Verified error handling during unsuccessful discovery operations.
+
+**Test Results:**
+
+- First-node joining – Passed.
+- Discovered peer storage – Passed.
+- Multiple-node peer discovery – Passed.
+- Routing table registration – Passed.
+
+**Total Tests: 4**
+
+**Passed: 4**
+
+**Failed: 0**
+
+**Result:** Day 10 successfully implemented bootstrap-based peer discovery and dynamic node joining. New nodes can contact the bootstrap server, register their peer information and discover existing network participants.
+
+The bootstrap mechanism provides an initial entry point into the peer network, while subsequent peer communication and lookup can take place between individual nodes.
+
 ## Week 1 Overall Achievements
 
 By the end of Week 1, MeshWeaver progressed from basic network communication to a distributed task-processing system with the following capabilities:
@@ -440,7 +493,7 @@ By the end of Week 1, MeshWeaver progressed from basic network communication to 
 
 ## Week 2 Overall Achievements So Far
 
-By the end of Day 9, MeshWeaver has established the initial DHT foundation and implemented a structured Kademlia-inspired routing table.
+By the end of Day 10, MeshWeaver has established the initial DHT foundation, implemented a structured Kademlia-inspired routing table, and introduced bootstrap-based peer discovery.
 
 Completed capabilities include:
 
@@ -455,18 +508,21 @@ Completed capabilities include:
 - Full-bucket peer replacement support.
 - Closest-peer lookup using XOR distance.
 - Routing table statistics.
-- Automated routing table unit testing.
+- Bootstrap server implementation.
+- TCP-based JOIN request-response mechanism.
+- Dynamic node registration.
+- Peer discovery through the bootstrap server.
+- Integration of discovered peers with local routing tables.
+- Automated routing table and peer discovery testing.
 
-The next milestones will extend these foundations into bootstrap-based peer discovery, dynamic node joining, iterative peer lookup and periodic resource gossip.
+The next milestones will extend these foundations into iterative peer lookup, network-wide peer discovery and periodic resource gossip.
 
 ## Upcoming Development – Week 2
 
 The next development phase will focus on improving decentralized peer discovery, routing, and distributed execution.
 
-Planned development areas include:
-
-1. Developing a bootstrap mechanism for new nodes.
-2. Enabling dynamic node joining and peer discovery.
+1. Developing a bootstrap mechanism for new nodes. **(Completed – Day 10)**
+2. Enabling dynamic node joining and peer discovery. **(Completed – Day 10)**
 3. Implementing iterative peer lookup.
 4. Extending resource gossip with asynchronous background tasks.
 5. Sharing CPU and RAM utilization reports with neighboring nodes every 5 seconds.
@@ -485,31 +541,50 @@ Planned development areas include:
 - [Day 7 – Function Serialization, Remote Execution and Load-Based Task Distribution](day7_wk1/README.md)
 - [Day 8 – DHT Foundation and Peer Information Management](day8_wk2/README.md)
 - [Day 9 – Advanced Kademlia Routing Table and Peer Management](day9_wk2/README.md)
+- [Day 10 – Bootstrap Mechanism and Dynamic Node Joining](day10_wk2/README.md)
 
 ## Current Limitations
 
-- Peer discovery currently uses UDP announcements and configured seed ports; a full Kademlia-based DHT is not yet implemented.
-- The Day 8 implementation establishes node identity and XOR distance calculation, while Day 9 introduces routing tables and K-Bucket management. Full iterative DHT lookup is still pending.
+- Peer discovery initially uses UDP announcements and configured seed ports. The newer Day 10 bootstrap mechanism provides TCP-based initial peer discovery, but a complete Kademlia-based DHT is still under development.
+- The Day 8 implementation establishes node identity and XOR distance calculation, while Day 9 introduces routing tables and K-Bucket management. Day 10 adds bootstrap-based joining and peer discovery. Iterative DHT lookup remains a future milestone.
 - Indirectly learned peers remain unconfirmed until direct communication establishes their availability.
-- Dynamic node joining and iterative peer lookup are planned for upcoming Week 2 milestones.
+- Iterative peer lookup and more advanced routing maintenance are still pending.
 - The Day 8 peer information serialization converts objects into JSON-compatible dictionaries, but actual network transmission of those Day 8 peer records is not yet implemented.
 - Node identities are randomly generated at startup in the Day 8 implementation; persistent identity storage across application restarts remains to be implemented.
-- Peer information is currently maintained as individual records and routing table entries; automatic stale-peer removal and periodic routing table maintenance remain future improvements.
-- IP address validation currently checks for a non-empty string in the Day 9 Peer data structure rather than verifying the complete IP address format.
-- The last-seen timestamp can be updated manually, but automatic peer health monitoring and stale-peer removal are not yet implemented in the Day 9 routing table module.
-- The Day 9 routing table supports a ping callback interface for full-bucket peer replacement, but actual network-level ping integration remains to be implemented.
-- HMAC authentication relies on a shared secret configured through an environment variable.
-- Timestamp-based message freshness checks are implemented, but a dedicated nonce-based replay-prevention mechanism is not yet available.
-- Task recovery does not guarantee exactly-once execution. A task may be executed again after recovery if its previous execution completed but its final state was not recorded.
-- Persistent journaling records task state changes, but does not provide a fully persistent distributed result store.
-- The recovery auditor detects journal inconsistencies but does not automatically repair or truncate damaged journal files.
-- Incomplete or malformed journal entries are skipped during replay; automatic journal repair is not implemented.
-- Cloudpickle deserialization can execute arbitrary code. Remote function packages must only be accepted from trusted and authenticated peers; authentication alone does not provide a sandbox.
-- Load-aware scheduling depends on the availability and freshness of peer resource reports.
-- The current distributed execution test demonstrates forwarding and successful execution across two local nodes. Larger-scale cluster testing remains pending.
-- Advanced failure recovery, automatic remote task reassignment, and network partition handling require further development.
-- The web dashboard currently uses manual refresh rather than continuous automatic refresh.
-- Testing has primarily been performed in controlled local multi-node environments; larger network and failure scenarios require further validation.
+
+Peer information is currently maintained as individual records and routing table entries; automatic stale-peer removal and periodic routing table maintenance remain future improvements.
+
+The bootstrap server provides an initial contact point for joining nodes. Its availability and address must be known to nodes that use it to join the network.
+
+IP address validation currently checks for a non-empty string in the Day 9 Peer data structure rather than verifying the complete IP address format.
+
+The last-seen timestamp can be updated manually, but automatic peer health monitoring and stale-peer removal are not yet implemented in the Day 9 routing table module.
+
+The Day 9 routing table supports a ping callback interface for full-bucket peer replacement, but actual network-level ping integration remains to be implemented.
+
+HMAC authentication relies on a shared secret configured through an environment variable.
+
+Timestamp-based message freshness checks are implemented, but a dedicated nonce-based replay-prevention mechanism is not yet available.
+
+Task recovery does not guarantee exactly-once execution. A task may be executed again after recovery if its previous execution completed but its final state was not recorded.
+
+Persistent journaling records task state changes, but does not provide a fully persistent distributed result store.
+
+The recovery auditor detects journal inconsistencies but does not automatically repair or truncate damaged journal files.
+
+Incomplete or malformed journal entries are skipped during replay; automatic journal repair is not implemented.
+
+Cloudpickle deserialization can execute arbitrary code. Remote function packages must only be accepted from trusted and authenticated peers; authentication alone does not provide a sandbox.
+
+Load-aware scheduling depends on the availability and freshness of peer resource reports.
+
+The current distributed execution test demonstrates forwarding and successful execution across two local nodes. Larger-scale cluster testing remains pending.
+
+Advanced failure recovery, automatic remote task reassignment, and network partition handling require further development.
+
+The web dashboard currently uses manual refresh rather than continuous automatic refresh.
+
+Testing has primarily been performed in controlled local multi-node environments; larger network and failure scenarios require further validation.
 
 ## Conclusion
 
@@ -519,8 +594,8 @@ The successful execution of eight forwarded tasks across two independent nodes d
 
 Week 1 established the foundation for distributed task processing, while Week 2 introduced the components required for decentralized node identification and Kademlia-inspired peer organization.
 
-The implementation of 160-bit node identities, XOR distance calculation, peer information management, K-Bucket routing tables and closest-peer lookup provides the groundwork for bootstrap-based node joining and distributed peer discovery.
+The implementation of 160-bit node identities, XOR distance calculation, peer information management, K-Bucket routing tables, closest-peer lookup, bootstrap-based node joining and peer discovery provides the groundwork for more advanced decentralized peer lookup.
 
-The next phase will focus on implementing bootstrap mechanisms, iterative peer lookup and strengthening resource gossip to improve peer discovery, network awareness and task distribution.
+The next phase will focus on implementing iterative peer lookup and strengthening resource gossip to improve peer discovery, network awareness and task distribution.
 
 The long-term goal is to develop a reliable, secure, and scalable peer-to-peer asynchronous task broker without depending on a centralized message broker.
