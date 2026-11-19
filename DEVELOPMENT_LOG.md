@@ -222,3 +222,29 @@ Successfully extended MeshWeaver's remote computation functionality with divisio
 Successfully completed the foundational networking and messaging components of MeshWeaver, including asynchronous TCP communication, structured messaging, client-server integration, protocol validation, and client connection reliability.
 
 Progressively expanded the automated test suite from 8 tests on Day 2 to 16 tests by Day 5, with all existing regression tests passing at the end of Day 6.
+
+## Day 9 – Week 2 Architecture Review & Baseline Verification
+
+### Objective
+Review the existing MeshWeaver architecture and establish a verified baseline before implementing peer discovery and resource sharing.
+
+### Work Completed
+- Inspected the existing node implementation in `meshweaver/node.py`.
+- Reviewed the message protocol and validation in `meshweaver/protocol.py`.
+- Reviewed JSON serialization and deserialization.
+- Inspected the asynchronous TCP client implementation.
+- Reviewed existing node and protocol unit tests.
+- Identified the existing client-server communication architecture.
+- Verified the complete existing test suite using `python -m pytest -v`.
+
+### Testing
+- Total tests collected: 23.
+- Tests passed: 23.
+- Tests failed: 0.
+
+### Outcome
+Established a verified baseline of the existing networking and remote task execution functionality before extending MeshWeaver with Kademlia-based peer discovery and gossip-based resource sharing.
+
+**Status:** Completed
+
+---
