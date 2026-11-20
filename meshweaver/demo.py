@@ -1,5 +1,5 @@
 
-"""Run the trusted localhost broker demonstration."""
+"""Run the trusted localhost MeshWeaver demonstration."""
 
 import asyncio
 
@@ -8,30 +8,33 @@ from meshweaver.logging_config import setup_logging
 
 
 def square(number):
-    """Return the square of a number."""
     return number * number
 
 
 def divide(a, b):
-    """Divide two numbers."""
     return a / b
 
 
 async def main():
-    """Demonstrate concurrent remote task execution."""
-
     print("\n========== MeshWeaver Task Broker Demo ==========\n")
 
-    # Start worker node
     worker_transport, _ = await start_worker()
-
-    # Start client node
     client_transport, client = await start_client()
 
     try:
-        print("1. Testing concurrent task execution...\n")
+        # Check worker health
+        print("1. Checking worker health...\n")
 
-        # Submit three tasks concurrently
+        healthy = await client.check_health(timeout=1.0)
+
+        print(
+            "\nWorker health:",
+            "HEALTHY" if healthy else "UNAVAILABLE",
+        )
+
+        # Test concurrent task execution
+        print("\n2. Testing concurrent task execution...\n")
+
         results = await asyncio.gather(
             *(
                 client.submit(square, n)
@@ -41,9 +44,9 @@ async def main():
 
         print("\nConcurrent task results:", results)
 
-        print("\n2. Testing remote error handling...\n")
+        # Test remote error handling
+        print("\n3. Testing remote error handling...\n")
 
-        # Submit a task that intentionally raises an error
         try:
             await client.submit(divide, 10, 0)
 
@@ -53,15 +56,10 @@ async def main():
         print("\n========== Demo Completed ==========\n")
 
     finally:
-        # Close connections
         client_transport.close()
         worker_transport.close()
 
 
 if __name__ == "__main__":
-
-    # Enable MeshWeaver structured logging
     setup_logging()
-
-    # Run asynchronous demonstration
     asyncio.run(main())

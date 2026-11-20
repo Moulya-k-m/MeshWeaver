@@ -20,9 +20,13 @@ logger = logging.getLogger("meshweaver.broker")
 
 
 def encode(message):
-    payload = json.dumps(message, separators=(",", ":")).encode("utf-8")
+    payload = json.dumps(
+        message, separators=(",", ":")
+    ).encode("utf-8")
+
     if len(payload) > MAX_PACKET:
         raise ValueError("UDP message exceeds 60000-byte demo limit")
+
     return payload
 
 
@@ -56,8 +60,33 @@ class Worker(asyncio.DatagramProtocol):
         try:
             msg = decode(data)
 
-            if msg.get("type") != "task" or not isinstance(
-                msg.get("id"), str
+            # Handle heartbeat requests
+            if msg.get("type") == "ping":
+                ping_id = msg.get("id")
+
+                if (
+                    not isinstance(ping_id, str)
+                    or not 0 < len(ping_id) <= 64
+                ):
+                    raise ValueError("Invalid ping id")
+
+                self.transport.sendto(
+                    encode({
+                        "type": "pong",
+                        "id": ping_id,
+                    }),
+                    addr,
+                )
+
+                logger.info(
+                    "Worker heartbeat responded | ping_id=%s",
+                    ping_id,
+                )
+                return
+
+            if (
+                msg.get("type") != "task"
+                or not isinstance(msg.get("id"), str)
             ):
                 raise ValueError("Invalid task message")
 
@@ -83,9 +112,11 @@ class Worker(asyncio.DatagramProtocol):
                 task_id,
             )
 
-            # ACK is informational; result is authoritative.
             self.transport.sendto(
-                encode({"type": "ack", "id": task_id}),
+                encode({
+                    "type": "ack",
+                    "id": task_id,
+                }),
                 addr,
             )
 
@@ -160,17 +191,15 @@ class Worker(asyncio.DatagramProtocol):
             )
 
         except Exception as exc:
-            packet = encode(
-                {
-                    "type": "result",
-                    "id": task_id,
-                    "ok": False,
-                    "error": (
-                        f"{type(exc).__name__}: "
-                        f"{str(exc)[:200]}"
-                    ),
-                }
-            )
+            packet = encode({
+                "type": "result",
+                "id": task_id,
+                "ok": False,
+                "error": (
+                    f"{type(exc).__name__}: "
+                    f"{str(exc)[:200]}"
+                ),
+            })
 
             logger.error(
                 "Task failed | task_id=%s | error=%s | duration=%.3fs",
@@ -195,6 +224,7 @@ class Client(asyncio.DatagramProtocol):
     def __init__(self):
         self.transport = None
         self.pending = {}
+        self.health_pending = {}
 
     def connection_made(self, transport):
         self.transport = transport
@@ -206,17 +236,26 @@ class Client(asyncio.DatagramProtocol):
 
         try:
             msg = decode(data)
+            msg_type = msg.get("type")
+            msg_id = msg.get("id")
 
-            if msg.get("type") != "result":
+            if msg_type == "pong":
+                future = self.health_pending.get(msg_id)
+
+                if future is not None and not future.done():
+                    future.set_result(msg)
+
                 return
 
-            task_id = msg.get("id")
-            future = self.pending.get(task_id)
+            if msg_type != "result":
+                return
+
+            future = self.pending.get(msg_id)
 
             if future is not None and not future.done():
                 logger.info(
                     "Task response received | task_id=%s",
-                    task_id,
+                    msg_id,
                 )
                 future.set_result(msg)
 
@@ -229,6 +268,60 @@ class Client(asyncio.DatagramProtocol):
                 "Invalid response rejected | error=%s",
                 type(exc).__name__,
             )
+
+    async def check_health(self, timeout=1.0):
+        """Check if the worker responds to a heartbeat."""
+
+        if timeout <= 0:
+            raise ValueError("timeout must be positive")
+
+        ping_id = uuid.uuid4().hex
+
+        loop = asyncio.get_running_loop()
+        future = loop.create_future()
+
+        self.health_pending[ping_id] = future
+
+        try:
+            logger.info(
+                "Worker health check started | ping_id=%s",
+                ping_id,
+            )
+
+            self.transport.sendto(
+                encode({
+                    "type": "ping",
+                    "id": ping_id,
+                })
+            )
+
+            try:
+                response = await asyncio.wait_for(
+                    future,
+                    timeout,
+                )
+
+            except asyncio.TimeoutError:
+                logger.warning(
+                    "Worker health check timed out | ping_id=%s",
+                    ping_id,
+                )
+                return False
+
+            healthy = (
+                response.get("type") == "pong"
+                and response.get("id") == ping_id
+            )
+
+            logger.info(
+                "Worker health check result | healthy=%s",
+                healthy,
+            )
+
+            return healthy
+
+        finally:
+            self.health_pending.pop(ping_id, None)
 
     async def submit(
         self,
@@ -249,15 +342,13 @@ class Client(asyncio.DatagramProtocol):
             (function, args, kwargs)
         )
 
-        packet = encode(
-            {
-                "type": "task",
-                "id": task_id,
-                "payload": base64.b64encode(
-                    serialized
-                ).decode("ascii"),
-            }
-        )
+        packet = encode({
+            "type": "task",
+            "id": task_id,
+            "payload": base64.b64encode(
+                serialized
+            ).decode("ascii"),
+        })
 
         loop = asyncio.get_running_loop()
         future = loop.create_future()
