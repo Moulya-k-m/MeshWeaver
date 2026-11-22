@@ -15,10 +15,15 @@ def divide(a, b):
     return a / b
 
 
+async def slow_square(number):
+    await asyncio.sleep(0.3)
+    return number * number
+
+
 async def main():
     print("\n========== MeshWeaver Demo ==========\n")
 
-    worker_transport, _ = await start_worker(port=0)
+    worker_transport, worker = await start_worker(port=0)
 
     port = worker_transport.get_extra_info("sockname")[1]
 
@@ -72,6 +77,21 @@ async def main():
             "Success rate:",
             f'{metrics["success_rate"]:.2f}%',
         )
+
+
+        print("\n5. Duplicate Task Prevention")
+
+        result = await client.submit(
+            slow_square,
+            7,
+            timeout=0.1,
+            retries=10,
+        )
+
+        print("Task result:", result)
+        print("Duplicate packets handled:", worker.duplicate_count)
+        print("Retry count:", client.get_metrics()["retries"])
+        print("Active tasks:", len(worker.in_flight))
 
         print("\n========== Demo Completed ==========\n")
 

@@ -48,6 +48,8 @@ class Worker(asyncio.DatagramProtocol):
         self.transport = None
         self.completed = OrderedDict()
         self.tasks = set()
+        self.in_flight = set()
+        self.duplicate_count = 0
 
     def connection_made(self, transport):
         self.transport = transport
@@ -95,6 +97,7 @@ class Worker(asyncio.DatagramProtocol):
                 raise ValueError("Invalid task id")
 
             if task_id in self.completed:
+                self.duplicate_count += 1
                 logger.info(
                     "Cached result returned | task_id=%s",
                     task_id,
@@ -103,6 +106,17 @@ class Worker(asyncio.DatagramProtocol):
                 self.transport.sendto(
                     self.completed[task_id],
                     addr,
+                )
+                return
+
+            if task_id in self.in_flight:
+                self.duplicate_count += 1
+                logger.info(
+                    "Duplicate task suppressed | task_id=%s",
+                    task_id,
+                )
+                self.transport.sendto(
+                    encode({"type": "ack", "id": task_id}), addr
                 )
                 return
 
@@ -123,8 +137,12 @@ class Worker(asyncio.DatagramProtocol):
                 self.execute(msg, addr)
             )
 
+            self.in_flight.add(task_id)
             self.tasks.add(task)
             task.add_done_callback(self.tasks.discard)
+            task.add_done_callback(
+                lambda _: self.in_flight.discard(task_id)
+            )
 
         except (
             ValueError,
@@ -204,6 +222,7 @@ class Worker(asyncio.DatagramProtocol):
             )
 
         self.completed[task_id] = packet
+        self.in_flight.discard(task_id)
 
         if len(self.completed) > 256:
             self.completed.popitem(last=False)
