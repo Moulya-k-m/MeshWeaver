@@ -1,8 +1,5 @@
 
-"""Async UDP task broker for trusted localhost demonstration only.
-
-Never expose this pickle-based prototype to untrusted peers.
-"""
+"""Async UDP task broker for trusted localhost only."""
 
 import asyncio
 import base64
@@ -13,6 +10,9 @@ import uuid
 from collections import OrderedDict
 
 import cloudpickle
+
+from meshweaver.metrics import TaskMetrics
+
 
 MAX_PACKET = 60000
 
@@ -60,7 +60,6 @@ class Worker(asyncio.DatagramProtocol):
         try:
             msg = decode(data)
 
-            # Handle heartbeat requests
             if msg.get("type") == "ping":
                 ping_id = msg.get("id")
 
@@ -92,7 +91,7 @@ class Worker(asyncio.DatagramProtocol):
 
             task_id = msg["id"]
 
-            if len(task_id) > 64:
+            if not 0 < len(task_id) <= 64:
                 raise ValueError("Invalid task id")
 
             if task_id in self.completed:
@@ -132,10 +131,9 @@ class Worker(asyncio.DatagramProtocol):
             UnicodeError,
             KeyError,
             TypeError,
-            json.JSONDecodeError,
         ) as exc:
             logger.warning(
-                "Invalid task message rejected | error=%s",
+                "Invalid message rejected | error=%s",
                 type(exc).__name__,
             )
 
@@ -168,21 +166,18 @@ class Worker(asyncio.DatagramProtocol):
 
             if asyncio.iscoroutinefunction(function):
                 result = await function(*args, **kwargs)
+
             else:
                 result = await asyncio.to_thread(
-                    function,
-                    *args,
-                    **kwargs,
+                    function, *args, **kwargs
                 )
 
-            response = {
+            packet = encode({
                 "type": "result",
                 "id": task_id,
                 "ok": True,
                 "value": result,
-            }
-
-            packet = encode(response)
+            })
 
             logger.info(
                 "Task completed | task_id=%s | duration=%.3fs",
@@ -225,6 +220,9 @@ class Client(asyncio.DatagramProtocol):
         self.transport = None
         self.pending = {}
         self.health_pending = {}
+
+        # Task execution metrics
+        self.metrics = TaskMetrics()
 
     def connection_made(self, transport):
         self.transport = transport
@@ -269,9 +267,11 @@ class Client(asyncio.DatagramProtocol):
                 type(exc).__name__,
             )
 
-    async def check_health(self, timeout=1.0):
-        """Check if the worker responds to a heartbeat."""
+    def get_metrics(self):
+        """Return current task execution statistics."""
+        return self.metrics.snapshot()
 
+    async def check_health(self, timeout=1.0):
         if timeout <= 0:
             raise ValueError("timeout must be positive")
 
@@ -297,8 +297,7 @@ class Client(asyncio.DatagramProtocol):
 
             try:
                 response = await asyncio.wait_for(
-                    future,
-                    timeout,
+                    future, timeout
                 )
 
             except asyncio.TimeoutError:
@@ -331,31 +330,42 @@ class Client(asyncio.DatagramProtocol):
         retries=2,
         **kwargs,
     ):
+        if timeout <= 0:
+            raise ValueError("timeout must be positive")
+
+        if not isinstance(retries, int) or retries < 0:
+            raise ValueError("retries must be a non-negative integer")
+
         task_id = uuid.uuid4().hex
+        start_time = time.perf_counter()
+
+        self.metrics.record_submission()
+
+        future = None
 
         logger.info(
             "Task submitted | task_id=%s",
             task_id,
         )
 
-        serialized = cloudpickle.dumps(
-            (function, args, kwargs)
-        )
-
-        packet = encode({
-            "type": "task",
-            "id": task_id,
-            "payload": base64.b64encode(
-                serialized
-            ).decode("ascii"),
-        })
-
-        loop = asyncio.get_running_loop()
-        future = loop.create_future()
-
-        self.pending[task_id] = future
-
         try:
+            serialized = cloudpickle.dumps(
+                (function, args, kwargs)
+            )
+
+            packet = encode({
+                "type": "task",
+                "id": task_id,
+                "payload": base64.b64encode(
+                    serialized
+                ).decode("ascii"),
+            })
+
+            loop = asyncio.get_running_loop()
+            future = loop.create_future()
+
+            self.pending[task_id] = future
+
             for attempt in range(retries + 1):
                 logger.info(
                     "Sending task | task_id=%s | attempt=%s",
@@ -371,27 +381,9 @@ class Client(asyncio.DatagramProtocol):
                         timeout,
                     )
 
-                    if not response.get("ok"):
-                        logger.error(
-                            "Remote task failed | task_id=%s",
-                            task_id,
-                        )
-
-                        raise RuntimeError(
-                            response.get(
-                                "error",
-                                "Remote execution failed",
-                            )
-                        )
-
-                    logger.info(
-                        "Task result delivered | task_id=%s",
-                        task_id,
-                    )
-
-                    return response.get("value")
-
                 except asyncio.TimeoutError:
+                    self.metrics.record_timeout()
+
                     if attempt == retries:
                         logger.warning(
                             "Task timed out | task_id=%s | attempts=%s",
@@ -403,14 +395,51 @@ class Client(asyncio.DatagramProtocol):
                             f"Task {task_id} timed out"
                         ) from None
 
+                    self.metrics.record_retry()
+
                     logger.warning(
                         "Retrying task | task_id=%s | next_attempt=%s",
                         task_id,
                         attempt + 2,
                     )
 
+                    continue
+
+                if not response.get("ok"):
+                    logger.error(
+                        "Remote task failed | task_id=%s",
+                        task_id,
+                    )
+
+                    raise RuntimeError(
+                        response.get(
+                            "error",
+                            "Remote execution failed",
+                        )
+                    )
+
+                duration = time.perf_counter() - start_time
+
+                self.metrics.record_success(duration)
+
+                logger.info(
+                    "Task result delivered | task_id=%s",
+                    task_id,
+                )
+
+                return response.get("value")
+
+        except (Exception, asyncio.CancelledError):
+            duration = time.perf_counter() - start_time
+
+            self.metrics.record_failure(duration)
+            raise
+
         finally:
             self.pending.pop(task_id, None)
+
+            if future is not None and not future.done():
+                future.cancel()
 
     def connection_lost(self, exc):
         logger.info("Client connection closed")

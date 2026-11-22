@@ -1,5 +1,5 @@
 
-"""Run the trusted localhost MeshWeaver demonstration."""
+"""MeshWeaver task broker and metrics demonstration."""
 
 import asyncio
 
@@ -16,35 +16,32 @@ def divide(a, b):
 
 
 async def main():
-    print("\n========== MeshWeaver Task Broker Demo ==========\n")
+    print("\n========== MeshWeaver Demo ==========\n")
 
-    worker_transport, _ = await start_worker()
-    client_transport, client = await start_client()
+    worker_transport, _ = await start_worker(port=0)
+
+    port = worker_transport.get_extra_info("sockname")[1]
+
+    client_transport, client = await start_client(port=port)
 
     try:
-        # Check worker health
         print("1. Checking worker health...\n")
 
         healthy = await client.check_health(timeout=1.0)
 
         print(
-            "\nWorker health:",
+            "Worker health:",
             "HEALTHY" if healthy else "UNAVAILABLE",
         )
 
-        # Test concurrent task execution
-        print("\n2. Testing concurrent task execution...\n")
+        print("\n2. Testing concurrent tasks...\n")
 
         results = await asyncio.gather(
-            *(
-                client.submit(square, n)
-                for n in (5, 10, 25)
-            )
+            *(client.submit(square, n) for n in (5, 10, 25))
         )
 
         print("\nConcurrent task results:", results)
 
-        # Test remote error handling
         print("\n3. Testing remote error handling...\n")
 
         try:
@@ -52,6 +49,29 @@ async def main():
 
         except RuntimeError as exc:
             print("\nExpected remote error:", exc)
+
+        print("\n4. Task Execution Metrics")
+        print("--------------------------------")
+
+        metrics = client.get_metrics()
+
+        print("Total submitted:", metrics["submitted"])
+        print("Successful tasks:", metrics["successful"])
+        print("Failed tasks:", metrics["failed"])
+        print("Pending tasks:", metrics["pending"])
+        print("Retries:", metrics["retries"])
+        print("Timeouts:", metrics["timeouts"])
+
+        print(
+            "Average completion time:",
+            metrics["average_duration"],
+            "seconds",
+        )
+
+        print(
+            "Success rate:",
+            f'{metrics["success_rate"]:.2f}%',
+        )
 
         print("\n========== Demo Completed ==========\n")
 
