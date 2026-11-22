@@ -1,9 +1,8 @@
-
 # MeshWeaver
 
 ## Project Overview
 
-MeshWeaver is a Python-based peer-to-peer asynchronous task broker that enables multiple nodes to communicate, discover peers, exchange resources, and distribute computational tasks without relying on centralized brokers such as Redis or RabbitMQ.
+MeshWeaver is a Python-based peer-to-peer asynchronous task broker that enables multiple nodes to communicate, discover peers, exchange resource information, and distribute computational tasks without relying on centralized brokers such as Redis or RabbitMQ.
 
 ## Objectives
 
@@ -18,7 +17,7 @@ MeshWeaver is a Python-based peer-to-peer asynchronous task broker that enables 
 
 ## Technology Stack
 
-Python, Asyncio, UDP, TCP, JSON, Psutil, HMAC-SHA256, Cloudpickle, Base64, Secrets, Dataclasses, Streamlit, Unittest, Git and GitHub.
+Python, Asyncio, UDP, TCP, JSON, Psutil, HMAC-SHA256, Cloudpickle, Base64, Secrets, Dataclasses, Streamlit, Unittest, Pytest, Git and GitHub.
 
 ## Week 1 Progress
 
@@ -40,10 +39,9 @@ Python, Asyncio, UDP, TCP, JSON, Psutil, HMAC-SHA256, Cloudpickle, Base64, Secre
 | Day 9 | Kademlia-inspired routing table, K-Buckets and closest-peer lookup | Completed |
 | Day 10 | Bootstrap mechanism, dynamic node joining and peer discovery | Completed |
 | Day 11 | FIND_NODE protocol and iterative peer lookup | Completed |
-| Day 12 | Resource monitoring and CPU/RAM status collection | Planned |
-| Day 13 | Asynchronous background gossip with 5-second updates | Planned |
+| Day 12 | Resource monitoring, CPU/RAM status collection and report validation | Completed |
+| Day 13 | Asynchronous background resource gossip with 5-second update intervals | Completed |
 | Day 14 | DHT and gossip integration, multi-node testing and reliability improvements | Planned |
-
 
 ## Project Structure
 
@@ -51,110 +49,30 @@ Python, Asyncio, UDP, TCP, JSON, Psutil, HMAC-SHA256, Cloudpickle, Base64, Secre
 MeshWeaver/
 │
 ├── day1_wk1/
-│   ├── sender.py
-│   ├── listener.py
-│   └── README.md
-│
 ├── day2_wk1/
-│   ├── framing.py
-│   ├── tcp_client.py
-│   ├── tcp_server.py
-│   └── README.md
-│
 ├── day3_wk1/
-│   ├── discovery.py
-│   ├── peer_table.py
-│   ├── task_queue.py
-│   ├── framing.py
-│   ├── node.py
-│   ├── cluster_test.py
-│   ├── test_peer_table.py
-│   ├── test_task_recovery.py
-│   └── README.md
-│
 ├── day4_wk1/
-│   ├── node.py
-│   ├── resource_monitor.py
-│   ├── resource_gossip.py
-│   ├── scheduler.py
-│   ├── task_store.py
-│   ├── worker.py
-│   └── README.md
-│
 ├── day5_wk1/
-│   ├── discovery.py
-│   ├── peer_table.py
-│   ├── framing.py
-│   ├── node.py
 │   ├── resource_monitor.py
 │   ├── resource_gossip.py
 │   ├── scheduler.py
-│   ├── worker.py
-│   ├── task_store.py
-│   ├── journal.py
-│   ├── security.py
-│   ├── cluster_test.py
-│   ├── test_journal.py
-│   ├── test_task_recovery.py
-│   ├── dashboard.py
-│   ├── web_dashboard.py
+│   ├── node.py
+│   ├── test_resource_gossip_day12_13.py
 │   └── README.md
 │
 ├── day6_wk1/
-│   ├── recovery_audit.py
-│   ├── test_recovery.py
-│   ├── test_journal_integrity.py
-│   ├── test_recovery_report.py
-│   ├── test_node_recovery.py
-│   └── README.md
-│
 ├── day7_wk1/
-│   ├── serializer.py
-│   ├── test_serialization.py
-│   ├── test_worker.py
-│   ├── test_remote_execution.py
-│   ├── test_load_balance.py
-│   └── README.md
-│
 ├── day8_wk2/
-│   ├── node_identity.py
-│   ├── peer_info.py
-│   ├── test_day8.py
-│   ├── test_edge_cases.py
-│   ├── test_serialization.py
-│   └── README.md
-│
 ├── day9_wk2/
-│   ├── __init__.py
-│   ├── peer.py
-│   ├── routing_table.py
-│   ├── test_routing.py
-│   └── README.md
-│
 ├── day10_wk2/
-│   ├── __init__.py
-│   ├── bootstrap.py
-│   ├── peer_discovery.py
-│   ├── test_discovery.py
-│   └── README.md
-│
 ├── day11_wk2/
-│   ├── __init__.py
-│   ├── find_node.py
-│   ├── test_find_node.py
-│   ├── lookup_manager.py
-│   ├── test_lookup_manager.py
-│   └── README.md
 │
 ├── .gitignore
 ├── README.md
 └── requirements.txt
 ```
 
-
-
-
-Each day folder contains its implementation, tests and README documentation.
+Each day folder contains its respective implementation, tests and README documentation where applicable. Resource gossip enhancements for Days 12 and 13 were implemented in the existing resource-monitoring and node modules.
 
 ## Current Progress
 
@@ -168,7 +86,7 @@ Implemented Python function serialization using Cloudpickle and Base64, enabling
 
 Verified distributed execution using two local nodes, successfully forwarding and completing eight tasks.
 
-### Week 2 – Decentralized Peer Discovery
+### Week 2 – Decentralized Peer Discovery and Resource Management
 
 **Day 8 – DHT Foundation**
 
@@ -190,7 +108,23 @@ Developed an iterative lookup manager using XOR distance to identify closer peer
 
 Added input validation, timeout handling, connection error handling and automated tests.
 
-**Testing:** All 9 Day 11 tests passed. Full project test discovery completed successfully with 19 tests passing.
+**Testing:** All 9 Day 11 tests passed. Full project test discovery previously completed with 19 tests passing.
+
+**Day 12 – Resource Monitoring and Report Validation**
+
+Extended resource monitoring and resource gossip functionality to collect and exchange CPU utilization, RAM utilization and active task information.
+
+Implemented resource report validation to reject invalid, stale, future-dated and older reports. Valid reports update the resource state and scheduler's peer-load information.
+
+**Day 13 – Asynchronous Background Resource Gossip**
+
+Implemented an asynchronous gossip engine that periodically exchanges resource reports with alive peers.
+
+Added concurrent peer communication, acknowledgement and rejection handling, timeout management and graceful cancellation of the background gossip task during node shutdown.
+
+**Testing:** Added focused resource gossip tests covering report validation, scheduler updates, peer communication acknowledgement and background task cancellation.
+
+All 7 focused Day 12 and Day 13 tests passed.
 
 ## Week 2 Achievements So Far
 
@@ -203,16 +137,22 @@ Added input validation, timeout handling, connection error handling and automate
 - TCP bootstrap and dynamic node joining.
 - FIND_NODE request-response protocol.
 - Iterative peer lookup with concurrent queries.
-- Automated testing of routing and discovery components.
+- CPU and RAM resource monitoring.
+- Resource report validation and stale-report handling.
+- Scheduler updates using peer resource information.
+- Asynchronous background resource gossip.
+- Periodic resource exchange with alive peers.
+- Timeout handling and graceful gossip cancellation.
+- Focused automated testing for resource gossip.
 
 ## Upcoming Development
 
-1. Implement CPU and RAM resource monitoring.
-2. Develop asynchronous background resource gossip.
-3. Exchange resource updates every 5 seconds.
-4. Integrate DHT peer information with resource gossip.
-5. Improve peer failure handling and routing reliability.
-6. Test the integrated system across multiple nodes.
+1. Integrate DHT peer discovery with the resource gossip mechanism.
+2. Perform multi-node testing of resource exchange.
+3. Improve peer failure handling and stale-peer removal.
+4. Verify load-aware task distribution using updated resource information.
+5. Improve routing reliability and recovery.
+6. Explore larger-scale network testing and performance improvements.
 
 ## Documentation
 
@@ -233,7 +173,7 @@ Added input validation, timeout handling, connection error handling and automate
 - The bootstrap mechanism requires nodes to know an initial bootstrap server address.
 - Peer health checks and automatic stale-peer removal need further integration with the DHT.
 - Iterative lookup currently operates on known and discovered peers; broader network testing is still needed.
-- Resource gossip integration with the new DHT is pending.
+- Resource gossip has been implemented and tested independently, but its complete integration with the new DHT requires further verification.
 - Persistent node identity across restarts is not yet implemented.
 - Larger-scale network testing and advanced failure recovery remain future improvements.
 - Cloudpickle execution must be restricted to trusted peers because deserialization can execute code.
@@ -244,4 +184,6 @@ MeshWeaver has evolved from basic network communication into a distributed task-
 
 Week 2 extends the project toward decentralized networking through node identities, XOR-based routing, Kademlia-inspired K-Buckets, bootstrap-based joining and iterative peer lookup.
 
-The next phase focuses on resource gossip and integrating decentralized discovery with load-aware task distribution.
+Resource monitoring and asynchronous resource gossip have now been implemented, bringing the project closer to decentralized, load-aware task distribution.
+
+The next phase focuses on integrating DHT discovery with resource gossip, validating multi-node communication and improving overall network reliability.
