@@ -248,3 +248,35 @@ Established a verified baseline of the existing networking and remote task execu
 **Status:** Completed
 
 ---
+## Day 10 – Node Identity, Peer Registry and MeshNode Integration
+
+### Objectives
+- Introduce unique identity for each MeshWeaver node.
+- Implement peer information storage and management.
+- Integrate identity and peer registry into the node architecture.
+- Preserve backward compatibility with the existing client interface.
+
+### Implementation
+- Created `NodeIdentity` to generate and manage unique node IDs.
+- Created the `Peer` dataclass to store peer ID, host and port.
+- Implemented `PeerRegistry` to add, retrieve, remove and list peers.
+- Introduced the `MeshNode` class to combine node identity, peer management and TCP server functionality.
+- Added server lifecycle methods: `start()`, `stop()` and `serve_forever()`.
+- Added protection against duplicate server startup and self-registration as a peer.
+- Preserved the standalone `handle_client` function for backward compatibility.
+
+### Testing
+- Added tests for node identity and peer management.
+- Added tests for MeshNode configuration and peer registration.
+- Tested TCP server startup and shutdown.
+- Tested duplicate server startup prevention.
+- Verified client-to-node communication and remote arithmetic task execution.
+
+### Result
+- All 47 tests passed successfully.
+- Existing client, protocol, serialization and arithmetic functionality remains compatible.
+
+### Next Steps
+- Begin peer discovery.
+- Explore Kademlia-based distributed peer lookup.
+- Prepare for gossip-based resource sharing.
