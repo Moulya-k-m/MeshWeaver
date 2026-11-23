@@ -422,6 +422,7 @@ class Node:
                 )
 
                 if new == "DEAD":
+                    self.gossip.remove_peer(node_id)
                     self.scheduler.load_reports.pop(
                         node_id, None
                     )
