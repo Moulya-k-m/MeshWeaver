@@ -7,7 +7,7 @@ import json
 import logging
 import time
 import uuid
-from collections import OrderedDict
+from collections import OrderedDict, deque
 
 import cloudpickle
 
@@ -44,7 +44,18 @@ def decode(payload):
 
 class Worker(asyncio.DatagramProtocol):
 
-    def __init__(self):
+    def __init__(self, max_concurrent=2, max_queue=100):
+        if not isinstance(max_concurrent, int) or max_concurrent < 1:
+            raise ValueError('max_concurrent must be a positive integer')
+        if not isinstance(max_queue, int) or max_queue < 0:
+            raise ValueError('max_queue must be a non-negative integer')
+        self.max_concurrent = max_concurrent
+        self.max_queue = max_queue
+        self.semaphore = asyncio.Semaphore(max_concurrent)
+        self.waiting = deque()
+        self.running = 0
+        self.max_running_observed = 0
+        self.rejected_count = 0
         self.transport = None
         self.completed = OrderedDict()
         self.tasks = set()
@@ -120,6 +131,18 @@ class Worker(asyncio.DatagramProtocol):
                 )
                 return
 
+            if self.running + len(self.waiting) >= (
+                self.max_concurrent + self.max_queue
+            ):
+                self.rejected_count += 1
+                self.transport.sendto(encode({
+                    "type": "result",
+                    "id": task_id,
+                    "ok": False,
+                    "error": "Worker queue is full",
+                }), addr)
+                return
+
             logger.info(
                 "Task received | task_id=%s",
                 task_id,
@@ -133,6 +156,7 @@ class Worker(asyncio.DatagramProtocol):
                 addr,
             )
 
+            self.waiting.append(task_id)
             task = asyncio.create_task(
                 self.execute(msg, addr)
             )
@@ -155,7 +179,37 @@ class Worker(asyncio.DatagramProtocol):
                 type(exc).__name__,
             )
 
+    def get_queue_stats(self):
+        """Return worker queue and concurrency statistics."""
+        return {
+            "waiting": len(self.waiting),
+            "running": self.running,
+            "max_concurrent": self.max_concurrent,
+            "max_queue": self.max_queue,
+            "max_running_observed": self.max_running_observed,
+            "rejected": self.rejected_count,
+            "duplicates": self.duplicate_count,
+        }
+
     async def execute(self, msg, addr):
+        task_id = msg["id"]
+        try:
+            async with self.semaphore:
+                self.waiting.remove(task_id)
+                self.running += 1
+                self.max_running_observed = max(
+                    self.max_running_observed, self.running
+                )
+                try:
+                    await self._execute_task(msg, addr)
+                finally:
+                    self.running -= 1
+        finally:
+            if task_id in self.waiting:
+                self.waiting.remove(task_id)
+            self.in_flight.discard(task_id)
+
+    async def _execute_task(self, msg, addr):
         task_id = msg["id"]
         start_time = time.perf_counter()
 
