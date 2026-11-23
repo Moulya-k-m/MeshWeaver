@@ -1,189 +1,558 @@
-# MeshWeaver
+# 🕸️ MeshWeaver
+### Zero-Dependency P2P Async Task Broker
 
-## Project Overview
+**Distributed Systems & Edge Computing**
 
-MeshWeaver is a Python-based peer-to-peer asynchronous task broker that enables multiple nodes to communicate, discover peers, exchange resource information, and distribute computational tasks without relying on centralized brokers such as Redis or RabbitMQ.
+MeshWeaver is a decentralized, peer-to-peer asynchronous task broker built using Python. It aims to distribute tasks across multiple nodes without depending on a centralized message broker such as Redis or RabbitMQ.
 
-## Objectives
+The system explores peer discovery, asynchronous communication, distributed resource monitoring, load-aware task scheduling and fault handling.
 
-- Establish asynchronous communication between peer nodes.
-- Discover peers and monitor node health.
-- Exchange CPU and RAM utilization information.
-- Distribute tasks using load-aware scheduling.
-- Support remote function execution and result retrieval.
-- Handle failures, retries, and task recovery.
-- Secure communication using message authentication.
-- Implement decentralized peer discovery using Kademlia-inspired mechanisms.
+---
 
-## Technology Stack
+## 📌 Project Overview
 
-Python, Asyncio, UDP, TCP, JSON, Psutil, HMAC-SHA256, Cloudpickle, Base64, Secrets, Dataclasses, Streamlit, Unittest, Pytest, Git and GitHub.
+Traditional task brokers often depend on centralized infrastructure to manage task distribution and communication. MeshWeaver explores an alternative approach in which independent nodes communicate directly and coordinate task processing.
 
-## Week 1 Progress
+Each node can participate in peer discovery, exchange resource information and contribute to distributed task execution.
 
-| Day | Work | Status |
+### 🎯 Key Objectives
+
+- Build a decentralized peer-to-peer task broker.
+- Enable asynchronous communication between nodes.
+- Discover peers without relying entirely on a centralized registry.
+- Exchange resource information between nodes.
+- Support distributed task scheduling.
+- Monitor peer availability and handle node failures.
+- Minimize external dependencies by using Python's built-in asynchronous networking capabilities.
+
+---
+
+## 🛠️ Technology Stack
+
+| Technology | Purpose |
+|---|---|
+| Python | Core implementation |
+| Asyncio | Asynchronous communication and task management |
+| UDP | Peer discovery and announcements |
+| TCP | Reliable communication and message exchange |
+| JSON | Structured message exchange |
+| Cloudpickle | Python object and function serialization |
+| HMAC-SHA256 | Message authentication |
+| SHA-1 | Node identifier generation |
+| Pytest | Unit and integration testing |
+| Git & GitHub | Version control and collaboration |
+
+---
+
+## 📅 Development Progress
+
+### Week 1 – Communication and Core Foundations
+
+| Day | Focus | Status |
 |---|---|---|
-| Day 1 | UDP communication, PING/PONG, RTT, jitter and packet-loss monitoring | Completed |
-| Day 2 | TCP communication, JSON framing and concurrent client testing | Completed |
-| Day 3 | Peer discovery, failure detection, asynchronous task queue and recovery | Completed |
-| Day 4 | Resource monitoring, gossip, load-aware scheduling and remote execution | Completed |
-| Day 5 | Persistent journaling, HMAC security, peer gossip and monitoring dashboards | Completed |
-| Day 6 | Task recovery verification and journal integrity auditing | Completed |
-| Day 7 | Function serialization, remote execution and load-based task distribution | Completed |
+| Day 1 | UDP communication – listener, sender and PING/PONG | Completed |
+| Day 2 | TCP communication and message framing | Completed |
+| Day 3 | Continued core communication development | Completed |
+| Day 4 | Core node and communication development | Completed |
+| Day 5 | Node integration and resource monitoring foundations | Completed |
+| Day 6 | Continued system integration and development | Completed |
+| Day 7 | Week 1 development and documentation | Completed |
 
-## Week 2 Progress
+### Week 2 – Peer Discovery and Distributed Coordination
 
-| Day | Work | Status |
+| Day | Focus | Status |
 |---|---|---|
-| Day 8 | DHT foundation, 160-bit node identities, XOR distance and peer information | Completed |
-| Day 9 | Kademlia-inspired routing table, K-Buckets and closest-peer lookup | Completed |
-| Day 10 | Bootstrap mechanism, dynamic node joining and peer discovery | Completed |
-| Day 11 | FIND_NODE protocol and iterative peer lookup | Completed |
-| Day 12 | Resource monitoring, CPU/RAM status collection and report validation | Completed |
-| Day 13 | Asynchronous background resource gossip with 5-second update intervals | Completed |
-| Day 14 | DHT and gossip integration, multi-node testing and reliability improvements | Planned |
+| Day 8 | Node identity and peer information | Completed |
+| Day 9 | Peer representation and routing table | Completed |
+| Day 10 | Bootstrap server and peer discovery | Completed |
+| Day 11 | Lookup manager and FIND_NODE functionality | Completed |
+| Days 12–13 | Resource gossip and asynchronous resource exchange | Completed |
+| Day 14 | Cluster integration, reliability and failure recovery testing | Completed |
 
+---
+
+# 🚀 Week 1 – Communication and Core Foundations
+
+## Day 1 – UDP Communication
+
+Implemented the initial communication mechanism between independent MeshWeaver nodes using UDP.
+
+### Features Implemented
+
+- UDP listener and sender.
+- PING/PONG message exchange.
+- JSON-based message format.
+- Unique node identifier generation using UUID and SHA-1.
+- Configurable message count and timeout.
+- Round-trip time measurement.
+- Minimum, average and maximum RTT statistics.
+- Dropped malformed packet handling.
+
+### Outcome
+
+Established the initial communication foundation required for peer-to-peer networking.
+
+## Day 2 – TCP Communication and Message Framing
+
+Implemented reliable TCP communication with message framing between client and server.
+
+### Features Implemented
+
+- TCP client and server.
+- Four-byte big-endian message length prefix.
+- Message size validation with a 1 MB maximum.
+- Structured JSON message exchange.
+- HELLO and HELLO_ACK communication.
+- ADD operation for arithmetic requests.
+- TIME operation for UTC timestamp responses.
+- Unknown operation handling.
+
+### Outcome
+
+Established structured TCP communication and message framing to support reliable data exchange between nodes.
+
+## Days 3–4 – Core Development
+
+Continued development of the foundational networking and node components.
+
+The focus was on progressing from individual communication scripts towards a more organized node-based architecture.
+
+### Development Focus
+
+- Organizing communication components.
+- Developing reusable node functionality.
+- Preparing the system for asynchronous coordination.
+- Building foundations for distributed communication.
+
+## Day 5 – Node Integration and Resource Monitoring
+
+Progressed towards integrating individual components into the MeshWeaver node architecture.
+
+### Development Focus
+
+- Node initialization and communication.
+- Peer table management.
+- Resource monitoring.
+- Scheduler integration.
+- Task storage and processing foundations.
+- Resource gossip implementation and supporting tests.
+
+The `day5_wk1` directory contains several components that were subsequently extended and tested during later development.
+
+### Outcome
+
+Established important foundations for integrating resource monitoring, peer management and task coordination.
+
+## Days 6–7 – Continued Core Development
+
+Continued developing and organizing the core MeshWeaver components.
+
+The work progressed towards a more integrated architecture, preparing the project for the distributed peer discovery and routing functionality introduced in Week 2.
+
+---
+
+# 🌐 Week 2 – Peer Discovery and Distributed Coordination
+
+## Day 8 – Node Identity and Peer Information
+
+Introduced the foundation for identifying nodes and maintaining peer information.
+
+### Development Focus
+
+- Node identity.
+- Peer information representation.
+- Node-related metadata.
+- Foundations for distributed peer management.
+
+## Day 9 – Peer Representation and Routing Table
+
+Implemented peer representation and routing table foundations.
+
+### Features
+
+- Peer data representation.
+- Routing table implementation.
+- Peer information management.
+- Support for organizing discovered nodes.
+- Foundations for Kademlia-style peer routing.
+
+### Outcome
+
+Established the routing structures required for decentralized peer discovery.
+
+## Day 10 – Bootstrap Server and Peer Discovery
+
+Implemented bootstrap-based peer discovery to help nodes identify and connect with other available nodes.
+
+### Features
+
+- Bootstrap server.
+- Peer discovery mechanism.
+- Node registration and peer information exchange.
+- TCP-based communication with the bootstrap server.
+- Peer discovery management.
+
+### Outcome
+
+Enabled nodes to obtain peer information through the bootstrap mechanism.
+
+## Day 11 – Lookup Manager and FIND_NODE
+
+Extended the peer discovery functionality with lookup management and node lookup operations.
+
+### Features
+
+- Lookup manager.
+- FIND_NODE functionality.
+- Peer lookup operations.
+- Routing table interaction.
+- Discovery-related testing.
+
+### Outcome
+
+Established the foundation for locating nodes through the distributed peer discovery and routing components.
+
+## Days 12–13 – Resource Gossip and Asynchronous Exchange
+
+Focused on exchanging resource information between available MeshWeaver nodes.
+
+The existing resource gossip implementation was extended and tested under `day5_wk1`.
+
+### Features
+
+- Resource report generation.
+- CPU utilization monitoring.
+- RAM utilization monitoring.
+- Active task count reporting.
+- Timestamp-based report validation.
+- Stale report rejection.
+- Resource information exchange between peers.
+- Scheduler load report updates.
+- Peer resource state management.
+- Asynchronous gossip loop.
+- Removal of outdated peer resource information.
+
+### Resource Report Validation
+
+Incoming resource reports are checked for:
+
+- Required report fields.
+- Valid resource values.
+- Valid timestamps.
+- Stale report age.
+- Invalid or outdated information.
+
+### Outcome
+
+Enabled nodes to exchange resource information and maintain updated peer load information for distributed scheduling.
+
+---
+
+# 🔗 Day 14 – Cluster Integration and Reliability
+
+Day 14 focused on validating the interaction between peer discovery, resource gossip, scheduler updates and peer failure handling.
+
+The objective was to move beyond testing individual components and verify their behavior in a real multi-node environment.
+
+## 🎯 Objectives
+
+- Coordinate peer discovery with resource gossip.
+- Register discovered peers in the peer table.
+- Exchange authenticated resource reports.
+- Update scheduler load information.
+- Detect unavailable peers.
+- Remove stale resource information.
+- Validate the system using a real three-node cluster.
+
+## Implementation
+
+### 1. Discovery and Gossip Integration
+
+Created an integration coordinator to connect the newer peer discovery component with resource gossip.
+
+Implemented functionality for:
+
+- Discovering and registering peers.
+- Refreshing peer information.
+- Excluding the bootstrap server from regular gossip communication.
+- Starting and stopping the gossip process.
+- Coordinating peer information with the resource gossip component.
+
+### 2. Resource Exchange Validation
+
+Validated resource exchange through the existing TCP communication mechanism.
+
+Nodes exchange authenticated resource reports containing CPU, RAM and active task information.
+
+### 3. Peer Failure Recovery
+
+Improved the existing node reaper mechanism.
+
+When a peer becomes DEAD:
+
+- Its resource state is removed.
+- Its last update timestamp is cleared.
+- Its scheduler load report is removed.
+- Outdated resource information is prevented from being reused.
+
+### 4. Real Three-Node Cluster Testing
+
+Created a real integration test using three independent MeshWeaver nodes.
+
+The test validates:
+
+1. Starting three nodes.
+2. Discovering peers through UDP announcements.
+3. Exchanging signed resource reports over TCP.
+4. Updating scheduler load reports.
+5. Stopping one node.
+6. Detecting the failed peer.
+7. Cleaning up its resource information.
+8. Gracefully shutting down the remaining nodes.
+
+## Day 14 Test Results
+
+| Functionality | Result |
+|---|---|
+| Three-node peer discovery | PASS |
+| Signed resource gossip exchange | PASS |
+| Scheduler load report updates | PASS |
+| Failed peer detection | PASS |
+| Dead-peer resource cleanup | PASS |
+
+### Regression Testing
+
+The combined regression suite covered Day 14, resource gossip, peer discovery, lookup management and FIND_NODE.
+
+| Test Module | Passed |
+|---|---:|
+| Day 14 integration tests | 3 |
+| Day 12–13 resource gossip | 7 |
+| Day 10 discovery | 4 |
+| Day 11 lookup manager | 5 |
+| Day 11 FIND_NODE | 4 |
+| **Total** | **23** |
+
+**Final result: 23 passed in 10.90 seconds.**
+
+---
 ## Project Structure
 
 ```text
 MeshWeaver/
 │
 ├── day1_wk1/
+│   ├── sender.py
+│   ├── listener.py
+│   └── README.md
+│
 ├── day2_wk1/
+│   ├── framing.py
+│   ├── tcp_client.py
+│   ├── tcp_server.py
+│   └── README.md
+│
 ├── day3_wk1/
+│   ├── discovery.py
+│   ├── peer_table.py
+│   ├── task_queue.py
+│   ├── framing.py
+│   ├── node.py
+│   ├── cluster_test.py
+│   ├── test_peer_table.py
+│   ├── test_task_recovery.py
+│   └── README.md
+│
 ├── day4_wk1/
-├── day5_wk1/
+│   ├── node.py
 │   ├── resource_monitor.py
 │   ├── resource_gossip.py
 │   ├── scheduler.py
+│   ├── task_store.py
+│   ├── worker.py
+│   └── README.md
+│
+├── day5_wk1/
+│   ├── discovery.py
+│   ├── peer_table.py
+│   ├── framing.py
 │   ├── node.py
+│   ├── resource_monitor.py
+│   ├── resource_gossip.py
+│   ├── scheduler.py
+│   ├── worker.py
+│   ├── task_store.py
+│   ├── journal.py
+│   ├── security.py
+│   ├── cluster_test.py
+│   ├── test_journal.py
+│   ├── test_task_recovery.py
+│   ├── dashboard.py
+│   ├── web_dashboard.py
 │   ├── test_resource_gossip_day12_13.py
 │   └── README.md
 │
 ├── day6_wk1/
+│   ├── recovery_audit.py
+│   ├── test_recovery.py
+│   ├── test_journal_integrity.py
+│   ├── test_recovery_report.py
+│   ├── test_node_recovery.py
+│   └── README.md
+│
 ├── day7_wk1/
+│   ├── serializer.py
+│   ├── test_serialization.py
+│   ├── test_worker.py
+│   ├── test_remote_execution.py
+│   ├── test_load_balance.py
+│   └── README.md
+│
 ├── day8_wk2/
+│   ├── node_identity.py
+│   ├── peer_info.py
+│   ├── test_day8.py
+│   ├── test_edge_cases.py
+│   ├── test_serialization.py
+│   └── README.md
+│
 ├── day9_wk2/
+│   ├── __init__.py
+│   ├── peer.py
+│   ├── routing_table.py
+│   ├── test_routing.py
+│   └── README.md
+│
 ├── day10_wk2/
+│   ├── __init__.py
+│   ├── bootstrap.py
+│   ├── peer_discovery.py
+│   ├── test_discovery.py
+│   └── README.md
+│
 ├── day11_wk2/
+│   ├── __init__.py
+│   ├── find_node.py
+│   ├── test_find_node.py
+│   ├── lookup_manager.py
+│   ├── test_lookup_manager.py
+│   └── README.md
+│
+├── day12_day13_wk2/
+│   └── README.md
+│
+├── day14_wk2/
+│   ├── __init__.py
+│   ├── integration.py
+│   ├── test_integration.py
+│   └── test_real_cluster.py
 │
 ├── .gitignore
 ├── README.md
 └── requirements.txt
 ```
 
-Each day folder contains its respective implementation, tests and README documentation where applicable. Resource gossip enhancements for Days 12 and 13 were implemented in the existing resource-monitoring and node modules.
+Each day folder contains its respective implementation, tests and README documentation where applicable.
 
-## Current Progress
+Days 12 and 13 extend the existing resource monitoring and gossip implementation in `day5_wk1`, with additional focused tests and separate documentation in `day12_day13_wk2`.
 
-### Week 1 – Distributed Task Processing
+Day 14 introduces discovery and gossip integration coordination, integration tests and real multi-node cluster testing in `day14_wk2`. The existing node failure cleanup improvement is maintained in `day5_wk1/node.py`.
 
-Implemented asynchronous UDP and TCP communication, peer discovery, health monitoring, task queue management, resource monitoring, gossip, load-aware scheduling and remote task execution.
+---
 
-Added persistent task journaling, restart recovery, HMAC-SHA256 authentication, indirect peer discovery, terminal and web dashboards, and journal integrity auditing.
+## 🧪 Running Tests
 
-Implemented Python function serialization using Cloudpickle and Base64, enabling remote function execution between nodes.
+Install the project dependencies:
 
-Verified distributed execution using two local nodes, successfully forwarding and completing eight tasks.
+```bash
+pip install -r requirements.txt
+```
 
-### Week 2 – Decentralized Peer Discovery and Resource Management
+Run the Day 14 tests:
 
-**Day 8 – DHT Foundation**
+```bash
+pytest day14_wk2 -v
+```
 
-Implemented 160-bit node identity generation and validation, XOR distance calculation, and peer information management using dataclasses and JSON serialization.
+Run the real cluster integration test:
 
-**Day 9 – Kademlia Routing Table**
+```bash
+pytest day14_wk2/test_real_cluster.py -v -s
+```
 
-Implemented 160 K-Buckets, peer insertion and removal, duplicate detection, full-bucket replacement support, closest-peer lookup and routing table statistics.
+Run the combined regression suite:
 
-**Day 10 – Bootstrap and Dynamic Node Joining**
+```bash
+pytest day14_wk2 day5_wk1/test_resource_gossip_day12_13.py day10_wk2/test_discovery.py day11_wk2/test_lookup_manager.py day11_wk2/test_find_node.py -v
+```
 
-Developed a TCP-based bootstrap server and JOIN request-response mechanism. New nodes can register with the network, discover existing peers and add discovered peers to their local routing tables.
+### Latest Verified Test Result
 
-**Day 11 – FIND_NODE and Iterative Peer Lookup**
+```text
+23 passed in 10.90s
+```
 
-Implemented a TCP-based FIND_NODE client-server protocol that retrieves the closest known peers to a target node ID.
+---
 
-Developed an iterative lookup manager using XOR distance to identify closer peers, query multiple peers concurrently and progressively discover nodes across the network.
+## 🏆 Achievements So Far
 
-Added input validation, timeout handling, connection error handling and automated tests.
+- Implemented UDP-based node communication.
+- Established TCP communication with message framing.
+- Developed foundational node and peer management components.
+- Implemented node identity and peer representation.
+- Developed routing table and lookup functionality.
+- Implemented bootstrap-based peer discovery.
+- Developed resource monitoring and gossip mechanisms.
+- Added authenticated resource report exchange.
+- Integrated scheduler load updates.
+- Improved dead-peer resource cleanup.
+- Validated communication using a real three-node cluster.
+- Successfully passed 23 combined regression tests.
 
-**Testing:** All 9 Day 11 tests passed. Full project test discovery previously completed with 19 tests passing.
+---
 
-**Day 12 – Resource Monitoring and Report Validation**
+## ⚠️ Current Limitations
 
-Extended resource monitoring and resource gossip functionality to collect and exchange CPU utilization, RAM utilization and active task information.
+- The newer TCP-based DHT discovery components and the existing Node runtime's UDP discovery mechanism are still separate.
+- The Day 14 integration coordinator is not yet wired into the main `Node.run()` lifecycle.
+- Large-scale cluster testing is still pending.
+- More extensive testing is needed for simultaneous node failures and task recovery.
+- Further validation is required for distributed task execution under changing network conditions.
+- Cloudpickle execution should be restricted to trusted peers.
 
-Implemented resource report validation to reject invalid, stale, future-dated and older reports. Valid reports update the resource state and scheduler's peer-load information.
+---
 
-**Day 13 – Asynchronous Background Resource Gossip**
+## 🔮 Upcoming Development
 
-Implemented an asynchronous gossip engine that periodically exchanges resource reports with alive peers.
+The next development phase can focus on:
 
-Added concurrent peer communication, acknowledgement and rejection handling, timeout management and graceful cancellation of the background gossip task during node shutdown.
+- Integrating the newer DHT discovery mechanism into the main node runtime.
+- Improving distributed task routing.
+- Implementing and validating task execution across multiple nodes.
+- Strengthening failure recovery and task requeue mechanisms.
+- Improving load-aware scheduling.
+- Testing larger peer networks.
+- Improving security and communication reliability.
+- Validating the complete end-to-end task broker workflow.
 
-**Testing:** Added focused resource gossip tests covering report validation, scheduler updates, peer communication acknowledgement and background task cancellation.
+---
 
-All 7 focused Day 12 and Day 13 tests passed.
+## 👥 Development
 
-## Week 2 Achievements So Far
+**Project:** MeshWeaver  
+**Domain:** Distributed Systems & Edge Computing  
+**Implementation Language:** Python  
+**Architecture:** Decentralized Peer-to-Peer  
+**Development Branch:** `Navya`
 
-- 160-bit node identity generation and validation.
-- XOR-based distance calculation.
-- Peer information management and serialization.
-- Kademlia-inspired routing table with 160 K-Buckets.
-- Peer registration, refresh and replacement support.
-- Closest-peer lookup.
-- TCP bootstrap and dynamic node joining.
-- FIND_NODE request-response protocol.
-- Iterative peer lookup with concurrent queries.
-- CPU and RAM resource monitoring.
-- Resource report validation and stale-report handling.
-- Scheduler updates using peer resource information.
-- Asynchronous background resource gossip.
-- Periodic resource exchange with alive peers.
-- Timeout handling and graceful gossip cancellation.
-- Focused automated testing for resource gossip.
+---
 
-## Upcoming Development
+## 📌 Conclusion
 
-1. Integrate DHT peer discovery with the resource gossip mechanism.
-2. Perform multi-node testing of resource exchange.
-3. Improve peer failure handling and stale-peer removal.
-4. Verify load-aware task distribution using updated resource information.
-5. Improve routing reliability and recovery.
-6. Explore larger-scale network testing and performance improvements.
+MeshWeaver is an ongoing exploration of decentralized task processing using Python's asynchronous networking capabilities.
 
-## Documentation
+Across the first 14 development days, the project has progressed from basic UDP and TCP communication to peer discovery, routing foundations, resource gossip, scheduler integration and multi-node reliability testing.
 
-- [Day 1 – UDP Communication](day1_wk1/README.md)
-- [Day 2 – TCP Communication](day2_wk1/README.md)
-- [Day 3 – Peer Discovery and Task Management](day3_wk1/README.md)
-- [Day 4 – Resource Monitoring and Distributed Execution](day4_wk1/README.md)
-- [Day 5 – Persistence, Security and Monitoring](day5_wk1/README.md)
-- [Day 6 – Recovery and Journal Integrity](day6_wk1/README.md)
-- [Day 7 – Serialization and Remote Execution](day7_wk1/README.md)
-- [Day 8 – DHT Foundation](day8_wk2/README.md)
-- [Day 9 – Kademlia Routing Table](day9_wk2/README.md)
-- [Day 10 – Bootstrap and Dynamic Node Joining](day10_wk2/README.md)
-- [Day 11 – FIND_NODE and Iterative Lookup](day11_wk2/README.md)
+The implementation demonstrates how independent nodes can communicate, exchange resource information, monitor peer availability and respond to node failures without relying on a traditional centralized message broker.
 
-## Current Limitations
-
-- The bootstrap mechanism requires nodes to know an initial bootstrap server address.
-- Peer health checks and automatic stale-peer removal need further integration with the DHT.
-- Iterative lookup currently operates on known and discovered peers; broader network testing is still needed.
-- Resource gossip has been implemented and tested independently, but its complete integration with the new DHT requires further verification.
-- Persistent node identity across restarts is not yet implemented.
-- Larger-scale network testing and advanced failure recovery remain future improvements.
-- Cloudpickle execution must be restricted to trusted peers because deserialization can execute code.
-
-## Conclusion
-
-MeshWeaver has evolved from basic network communication into a distributed task-processing system with remote execution, persistence, security and monitoring capabilities.
-
-Week 2 extends the project toward decentralized networking through node identities, XOR-based routing, Kademlia-inspired K-Buckets, bootstrap-based joining and iterative peer lookup.
-
-Resource monitoring and asynchronous resource gossip have now been implemented, bringing the project closer to decentralized, load-aware task distribution.
-
-The next phase focuses on integrating DHT discovery with resource gossip, validating multi-node communication and improving overall network reliability.
+With 23 regression tests passing, the project has established a foundation for further development towards a reliable and scalable peer-to-peer asynchronous task broker.
