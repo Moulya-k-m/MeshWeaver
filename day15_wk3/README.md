@@ -1,4 +1,4 @@
-@'
+
 # Day 15 – Routing Reliability and Transparency
 
 ## Implemented Features
