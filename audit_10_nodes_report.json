@@ -1,0 +1,121 @@
+{
+    "audit": "MeshWeaver 10-node network audit",
+    "nodes_requested": 10,
+    "nodes_started": 10,
+    "node_ports": [
+        8001,
+        8002,
+        8003,
+        8004,
+        8005,
+        8006,
+        8007,
+        8008,
+        8009,
+        8010
+    ],
+    "discovery": {
+        "expected_peer_entries": 90,
+        "discovered_peer_entries": 90,
+        "coverage_percent": 100.0,
+        "per_node": {
+            "8001": {
+                "node_id": "b6d5c30da3d7410390c7af4605e34d50",
+                "known_peers": 9,
+                "direct_peers": 9,
+                "indirect_peers": 0,
+                "expected_peers": 9,
+                "discovered_project_nodes": 9,
+                "missing_peers": []
+            },
+            "8002": {
+                "node_id": "5eaab16dff73440fb01f895e3fce9202",
+                "known_peers": 9,
+                "direct_peers": 9,
+                "indirect_peers": 0,
+                "expected_peers": 9,
+                "discovered_project_nodes": 9,
+                "missing_peers": []
+            },
+            "8003": {
+                "node_id": "e2a8699bab494dcf9c42cbaed59a3f1f",
+                "known_peers": 9,
+                "direct_peers": 9,
+                "indirect_peers": 0,
+                "expected_peers": 9,
+                "discovered_project_nodes": 9,
+                "missing_peers": []
+            },
+            "8004": {
+                "node_id": "bc8abe6bcfca45e38a686b9adc3ab32f",
+                "known_peers": 9,
+                "direct_peers": 9,
+                "indirect_peers": 0,
+                "expected_peers": 9,
+                "discovered_project_nodes": 9,
+                "missing_peers": []
+            },
+            "8005": {
+                "node_id": "9f67964a97e5455cbc6df74a2f8f9b21",
+                "known_peers": 9,
+                "direct_peers": 9,
+                "indirect_peers": 0,
+                "expected_peers": 9,
+                "discovered_project_nodes": 9,
+                "missing_peers": []
+            },
+            "8006": {
+                "node_id": "1c64d39363c84936bbb7111ad05843a6",
+                "known_peers": 9,
+                "direct_peers": 9,
+                "indirect_peers": 0,
+                "expected_peers": 9,
+                "discovered_project_nodes": 9,
+                "missing_peers": []
+            },
+            "8007": {
+                "node_id": "a8d5b70697a14a66ab33a7726b0e93a9",
+                "known_peers": 9,
+                "direct_peers": 9,
+                "indirect_peers": 0,
+                "expected_peers": 9,
+                "discovered_project_nodes": 9,
+                "missing_peers": []
+            },
+            "8008": {
+                "node_id": "f6dca50e4e344d0a841b03970dda6de2",
+                "known_peers": 9,
+                "direct_peers": 9,
+                "indirect_peers": 0,
+                "expected_peers": 9,
+                "discovered_project_nodes": 9,
+                "missing_peers": []
+            },
+            "8009": {
+                "node_id": "c0a5da7566ec4fe9a7ee3d5034f2d7a3",
+                "known_peers": 9,
+                "direct_peers": 9,
+                "indirect_peers": 0,
+                "expected_peers": 9,
+                "discovered_project_nodes": 9,
+                "missing_peers": []
+            },
+            "8010": {
+                "node_id": "01e82a370a17491f8ee3e59fa94a25dc",
+                "known_peers": 9,
+                "direct_peers": 9,
+                "indirect_peers": 0,
+                "expected_peers": 9,
+                "discovered_project_nodes": 9,
+                "missing_peers": []
+            }
+        }
+    },
+    "authenticated_tcp": {
+        "attempted": 90,
+        "successful": 90,
+        "failed": 0,
+        "success_percent": 100.0,
+        "failures": []
+    }
+}

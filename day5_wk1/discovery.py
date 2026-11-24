@@ -106,6 +106,7 @@ class Discovery(asyncio.DatagramProtocol):
                 "Invalid discovery packet from %s", addr
             )
 
+    
     async def beacon_loop(self, seed_ports, interval=2.0):
 
         while True:
@@ -114,8 +115,6 @@ class Discovery(asyncio.DatagramProtocol):
                 "type": "ANNOUNCE",
                 "node_id": self.node_id,
                 "tcp_port": self.tcp_port,
-
-                # Share known peer information.
                 "peers": self.table.gossip_peers()
             }
 
@@ -123,12 +122,44 @@ class Discovery(asyncio.DatagramProtocol):
                 sign(payload)
             ).encode()
 
-            for port in seed_ports:
+            # Start with the configured seed nodes.
+            targets = {
+                ("127.0.0.1", port)
+                for port in seed_ports
+            }
 
-                if port != self.discovery_port:
-                    self.transport.sendto(
-                        signed_payload,
-                        ("127.0.0.1", port)
-                    )
+            # Also announce to all known peers.
+            for peer in self.table.gossip_peers():
+
+                host = peer.get("host")
+                tcp_port = peer.get("tcp_port")
+
+                if not isinstance(host, str):
+                    continue
+
+                if not isinstance(tcp_port, int):
+                    continue
+
+                if not 1 <= tcp_port <= 65535:
+                    continue
+
+                # Match the UDP port calculation in Node.
+                udp_port = 50000 + tcp_port % 1000
+
+                targets.add((host, udp_port))
+
+            # Send one announcement to each unique destination.
+            for host, port in targets:
+
+                if host == "127.0.0.1" and port == self.discovery_port:
+                    continue
+
+                self.transport.sendto(
+                    signed_payload,
+                    (host, port)
+                )
 
             await asyncio.sleep(interval)
+
+
+            
