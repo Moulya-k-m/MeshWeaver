@@ -1,11 +1,11 @@
 # 🕸️ MeshWeaver
 ### Zero-Dependency P2P Async Task Broker
 
-**Distributed Systems & Edge Computing**
+**Domain:** Distributed Systems & Edge Computing
 
-MeshWeaver is a decentralized, peer-to-peer asynchronous task broker built using Python. It aims to distribute tasks across multiple nodes without depending on a centralized message broker such as Redis or RabbitMQ.
+MeshWeaver is a decentralized, peer-to-peer asynchronous task broker built using Python. It aims to distribute tasks across multiple nodes without depending on centralized message brokers such as Redis or RabbitMQ.
 
-The system explores peer discovery, asynchronous communication, distributed resource monitoring, load-aware task scheduling and fault handling.
+The project explores peer discovery, asynchronous communication, distributed resource monitoring, load-aware task scheduling, remote task execution, routing reliability and fault handling.
 
 ---
 
@@ -13,7 +13,7 @@ The system explores peer discovery, asynchronous communication, distributed reso
 
 Traditional task brokers often depend on centralized infrastructure to manage task distribution and communication. MeshWeaver explores an alternative approach in which independent nodes communicate directly and coordinate task processing.
 
-Each node can participate in peer discovery, exchange resource information and contribute to distributed task execution.
+Each node can participate in peer discovery, exchange resource information, evaluate peer availability and contribute to distributed task execution.
 
 ### 🎯 Key Objectives
 
@@ -21,9 +21,10 @@ Each node can participate in peer discovery, exchange resource information and c
 - Enable asynchronous communication between nodes.
 - Discover peers without relying entirely on a centralized registry.
 - Exchange resource information between nodes.
-- Support distributed task scheduling.
+- Support distributed task scheduling and execution.
 - Monitor peer availability and handle node failures.
-- Minimize external dependencies by using Python's built-in asynchronous networking capabilities.
+- Improve routing reliability through fallback mechanisms.
+- Minimize external dependencies using Python's asynchronous networking capabilities.
 
 ---
 
@@ -68,6 +69,16 @@ Each node can participate in peer discovery, exchange resource information and c
 | Day 11 | Lookup manager and FIND_NODE functionality | Completed |
 | Days 12–13 | Resource gossip and asynchronous resource exchange | Completed |
 | Day 14 | Cluster integration, reliability and failure recovery testing | Completed |
+
+### Week 3 – Routing Reliability and Distributed Execution
+
+| Day | Focus | Status |
+|---|---|---|
+| Day 15 | Routing reliability and decision logging | Completed after final commit |
+| Day 16 | End-to-end distributed task execution | Upcoming |
+| Day 17 | Task failure recovery and reassignment | Upcoming |
+| Day 18 | Multi-node load balancing and stress testing | Upcoming |
+| Day 19 | Integration, regression testing and documentation | Upcoming |
 
 ---
 
@@ -115,8 +126,6 @@ Established structured TCP communication and message framing to support reliable
 
 Continued development of the foundational networking and node components.
 
-The focus was on progressing from individual communication scripts towards a more organized node-based architecture.
-
 ### Development Focus
 
 - Organizing communication components.
@@ -147,7 +156,7 @@ Established important foundations for integrating resource monitoring, peer mana
 
 Continued developing and organizing the core MeshWeaver components.
 
-The work progressed towards a more integrated architecture, preparing the project for the distributed peer discovery and routing functionality introduced in Week 2.
+The work progressed towards a more integrated architecture, preparing the project for distributed peer discovery, serialization and routing functionality introduced in subsequent development.
 
 ---
 
@@ -198,7 +207,7 @@ Enabled nodes to obtain peer information through the bootstrap mechanism.
 
 ## Day 11 – Lookup Manager and FIND_NODE
 
-Extended the peer discovery functionality with lookup management and node lookup operations.
+Extended peer discovery functionality with lookup management and node lookup operations.
 
 ### Features
 
@@ -210,7 +219,7 @@ Extended the peer discovery functionality with lookup management and node lookup
 
 ### Outcome
 
-Established the foundation for locating nodes through the distributed peer discovery and routing components.
+Established the foundation for locating nodes through distributed peer discovery and routing components.
 
 ## Days 12–13 – Resource Gossip and Asynchronous Exchange
 
@@ -248,13 +257,13 @@ Enabled nodes to exchange resource information and maintain updated peer load in
 
 ---
 
-# 🔗 Day 14 – Cluster Integration and Reliability
+## Day 14 – Cluster Integration and Reliability
 
 Day 14 focused on validating the interaction between peer discovery, resource gossip, scheduler updates and peer failure handling.
 
 The objective was to move beyond testing individual components and verify their behavior in a real multi-node environment.
 
-## 🎯 Objectives
+### 🎯 Objectives
 
 - Coordinate peer discovery with resource gossip.
 - Register discovered peers in the peer table.
@@ -262,13 +271,11 @@ The objective was to move beyond testing individual components and verify their 
 - Update scheduler load information.
 - Detect unavailable peers.
 - Remove stale resource information.
-- Validate the system using a real three-node cluster.
-
-## Implementation
+- Validate the system using a real three-node environment.
 
 ### 1. Discovery and Gossip Integration
 
-Created an integration coordinator to connect the newer peer discovery component with resource gossip.
+Created an integration coordinator to connect the peer discovery component with resource gossip.
 
 Implemented functionality for:
 
@@ -276,7 +283,7 @@ Implemented functionality for:
 - Refreshing peer information.
 - Excluding the bootstrap server from regular gossip communication.
 - Starting and stopping the gossip process.
-- Coordinating peer information with the resource gossip component.
+- Coordinating peer information with resource gossip.
 
 ### 2. Resource Exchange Validation
 
@@ -310,7 +317,7 @@ The test validates:
 7. Cleaning up its resource information.
 8. Gracefully shutting down the remaining nodes.
 
-## Day 14 Test Results
+### Day 14 Test Results
 
 | Functionality | Result |
 |---|---|
@@ -322,8 +329,6 @@ The test validates:
 
 ### Regression Testing
 
-The combined regression suite covered Day 14, resource gossip, peer discovery, lookup management and FIND_NODE.
-
 | Test Module | Passed |
 |---|---:|
 | Day 14 integration tests | 3 |
@@ -333,10 +338,96 @@ The combined regression suite covered Day 14, resource gossip, peer discovery, l
 | Day 11 FIND_NODE | 4 |
 | **Total** | **23** |
 
-**Final result: 23 passed in 10.90 seconds.**
+**Final verified result: 23 passed in 10.90 seconds.**
 
 ---
-## Project Structure
+
+# 🧭 Day 15 – Routing Reliability and Decision Transparency
+
+Day 15 focused on improving routing reliability and making task scheduling decisions easier to understand and debug.
+
+The objective was to ensure that stale peer information is not used for routing and that tasks can still be processed locally when forwarding to another peer fails.
+
+## 🎯 Objectives
+
+- Validate peer load report freshness.
+- Prevent routing decisions based on stale resource information.
+- Handle failed task forwarding.
+- Provide local execution fallback.
+- Record routing decisions for debugging and monitoring.
+
+## 1. Stale Peer Load Report Handling
+
+Added and tested routing behavior that ignores outdated peer load reports.
+
+This prevents the scheduler from selecting peers based on old resource information.
+
+## 2. Failed Forwarding and Local Fallback
+
+Validated the behavior when a selected peer becomes unavailable during task forwarding.
+
+Implemented and tested the fallback behavior:
+
+- Attempt forwarding to the selected peer.
+- Handle forwarding failure.
+- Retain the task locally.
+- Return a successful task acceptance response.
+- Record the local execution decision.
+
+## 3. Routing Decision Logger
+
+Introduced `RoutingDecisionLogger` to maintain structured routing decision records in JSON Lines format.
+
+Each record contains:
+
+- Timestamp.
+- Task ID.
+- Node ID.
+- Routing decision.
+- Reason for the decision.
+- Local load score.
+- Selected peer ID.
+- Selected peer load score.
+
+The logger records decisions such as:
+
+- `FORWARDED` – Task successfully forwarded to another peer.
+- `LOCAL` – Task retained for local processing.
+
+Log files are maintained separately for individual node ports.
+
+## 4. Day 15 Testing
+
+Created routing reliability tests to validate:
+
+| Test Case | Result |
+|---|---|
+| Scheduler ignores stale load reports | PASS |
+| Failed forwarding falls back to local queue | PASS |
+| Structured routing log generation | VERIFIED |
+
+### Latest Test Output
+
+```text
+pytest .\day15_wk3 -v
+
+collected 2 items
+
+test_failed_forwarding_falls_back_to_local_queue PASSED
+test_scheduler_ignores_stale_load_report PASSED
+
+2 passed in 0.13s
+```
+
+The generated JSONL log was also inspected and verified to contain the local fallback decision, task identifier, reason and load information.
+
+### Outcome
+
+Improved routing transparency and reliability by adding structured decision logging, stale-report validation and local fallback behavior when peer forwarding fails.
+
+---
+
+# 📁 Project Structure
 
 ```text
 MeshWeaver/
@@ -445,22 +536,31 @@ MeshWeaver/
 │   ├── __init__.py
 │   ├── integration.py
 │   ├── test_integration.py
-│   └── test_real_cluster.py
+│   ├── test_real_cluster.py
+│   └── README.md
+│
+├── day15_wk3/
+│   ├── routing_logger.py
+│   ├── test_routing_reliability.py
+│   ├── routing_logs/
+│   └── README.md
 │
 ├── .gitignore
 ├── README.md
 └── requirements.txt
 ```
 
-Each day folder contains its respective implementation, tests and README documentation where applicable.
+Each development folder contains its respective implementation, tests and documentation where applicable.
 
-Days 12 and 13 extend the existing resource monitoring and gossip implementation in `day5_wk1`, with additional focused tests and separate documentation in `day12_day13_wk2`.
+Days 12 and 13 extend the existing resource monitoring and gossip implementation in `day5_wk1`, with additional focused tests and separate documentation.
 
-Day 14 introduces discovery and gossip integration coordination, integration tests and real multi-node cluster testing in `day14_wk2`. The existing node failure cleanup improvement is maintained in `day5_wk1/node.py`.
+Day 14 introduces discovery and gossip integration coordination, integration tests and real multi-node cluster testing in `day14_wk2`.
+
+Day 15 introduces routing reliability tests and structured routing decision logging in `day15_wk3`, with the logger integrated into the existing `day5_wk1/node.py` runtime.
 
 ---
 
-## 🧪 Running Tests
+# 🧪 Running Tests
 
 Install the project dependencies:
 
@@ -480,21 +580,31 @@ Run the real cluster integration test:
 pytest day14_wk2/test_real_cluster.py -v -s
 ```
 
-Run the combined regression suite:
+Run the Day 15 routing reliability tests:
+
+```bash
+pytest day15_wk3 -v
+```
+
+Run the combined Week 2 regression suite:
 
 ```bash
 pytest day14_wk2 day5_wk1/test_resource_gossip_day12_13.py day10_wk2/test_discovery.py day11_wk2/test_lookup_manager.py day11_wk2/test_find_node.py -v
 ```
 
-### Latest Verified Test Result
+### Latest Verified Test Results
 
-```text
-23 passed in 10.90s
-```
+| Test Suite | Result |
+|---|---:|
+| Week 2 combined regression suite | 23 passed |
+| Day 14 integration tests | 3 passed |
+| Day 15 routing reliability tests | 2 passed |
+
+*The Day 14 and combined regression results are from their respective earlier test runs. The Day 15 result is from the latest verified run.*
 
 ---
 
-## 🏆 Achievements So Far
+# 🏆 Achievements So Far
 
 - Implemented UDP-based node communication.
 - Established TCP communication with message framing.
@@ -507,24 +617,29 @@ pytest day14_wk2 day5_wk1/test_resource_gossip_day12_13.py day10_wk2/test_discov
 - Integrated scheduler load updates.
 - Improved dead-peer resource cleanup.
 - Validated communication using a real three-node cluster.
-- Successfully passed 23 combined regression tests.
+- Implemented remote function serialization and execution foundations.
+- Audited discovery and authenticated TCP connectivity across a 10-node local test cluster.
+- Added routing decision logging.
+- Implemented and tested local fallback when peer forwarding fails.
+- Successfully passed 23 Week 2 regression tests and 2 Day 15 routing reliability tests.
 
 ---
 
-## ⚠️ Current Limitations
+# ⚠️ Current Limitations
 
 - The newer TCP-based DHT discovery components and the existing Node runtime's UDP discovery mechanism are still separate.
 - The Day 14 integration coordinator is not yet wired into the main `Node.run()` lifecycle.
 - Large-scale cluster testing is still pending.
 - More extensive testing is needed for simultaneous node failures and task recovery.
 - Further validation is required for distributed task execution under changing network conditions.
-- Cloudpickle execution should be restricted to trusted peers.
+- Cloudpickle deserialization can execute code and should be restricted to trusted peers.
+- Routing decision logging has been validated with focused tests; broader multi-node routing observability remains future work.
 
 ---
 
-## 🔮 Upcoming Development
+# 🔮 Upcoming Development
 
-The next development phase can focus on:
+The next development phase will focus on:
 
 - Integrating the newer DHT discovery mechanism into the main node runtime.
 - Improving distributed task routing.
@@ -537,7 +652,7 @@ The next development phase can focus on:
 
 ---
 
-## 👥 Development
+# 👥 Development
 
 **Project:** MeshWeaver  
 **Domain:** Distributed Systems & Edge Computing  
@@ -547,12 +662,12 @@ The next development phase can focus on:
 
 ---
 
-## 📌 Conclusion
+# 📌 Conclusion
 
 MeshWeaver is an ongoing exploration of decentralized task processing using Python's asynchronous networking capabilities.
 
-Across the first 14 development days, the project has progressed from basic UDP and TCP communication to peer discovery, routing foundations, resource gossip, scheduler integration and multi-node reliability testing.
+Across the first 15 development days, the project has progressed from basic UDP and TCP communication to peer discovery, routing foundations, resource gossip, scheduler integration, multi-node reliability testing and routing decision transparency.
 
-The implementation demonstrates how independent nodes can communicate, exchange resource information, monitor peer availability and respond to node failures without relying on a traditional centralized message broker.
+The implementation demonstrates how independent nodes can communicate, exchange resource information, monitor peer availability, make load-aware routing decisions and respond to forwarding failures without relying on a traditional centralized message broker.
 
-With 23 regression tests passing, the project has established a foundation for further development towards a reliable and scalable peer-to-peer asynchronous task broker.
+With successful Week 2 regression testing and Day 15 routing reliability tests, MeshWeaver has established a foundation for further development towards a reliable peer-to-peer asynchronous task broker.
