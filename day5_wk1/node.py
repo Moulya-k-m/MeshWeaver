@@ -450,10 +450,11 @@ class Node:
             )
 
             logging.info(
-                "Node %s started | TCP: %d | UDP: %d",
+                "Node %s started | TCP: %d | UDP: %d|PID: %d",
                 self.node_id[:8],
                 self.tcp_port,
                 self.udp_port,
+                os.getpid(),
             )
 
             if self.store.recovered:
