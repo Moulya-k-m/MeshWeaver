@@ -3,8 +3,10 @@ import argparse
 import asyncio
 import logging
 import os
+import sys
 import time
 import uuid
+from pathlib import Path
 
 from discovery import Discovery
 from framing import read_msg, write_msg
@@ -15,6 +17,14 @@ from scheduler import Scheduler
 from task_store import TaskStore
 from worker import worker_loop
 from security import sign, verify
+
+# Import the Week 3 routing logger.
+sys.path.insert(
+    0,
+    str(Path(__file__).resolve().parent.parent / "day15_wk3")
+)
+
+from routing_logger import RoutingDecisionLogger
 
 
 SEED_PORTS = [50001, 50002, 50003]
@@ -45,6 +55,14 @@ class Node:
         )
 
         self.remote_tasks = {}
+
+        # Week 3: Initialize routing decision logger.
+        project_root = Path(__file__).resolve().parent.parent
+
+        self.routing_logger = RoutingDecisionLogger(
+            project_root / "day15_wk3" / "routing_logs"
+            / f"node_{tcp_port}.jsonl"
+        )
 
         self.scheduler = Scheduler(self.table)
 
@@ -189,6 +207,7 @@ class Node:
 
                 logging.info("NO ELIGIBLE PEER FOUND")
 
+            # Attempt remote forwarding when peer is less loaded.
             if peer and peer["load_score"] < local_score:
 
                 task_id = uuid.uuid4().hex[:8]
@@ -221,6 +240,16 @@ class Node:
                             "node_id": peer["node_id"],
                         }
 
+                        # Record successful forwarding.
+                        self.routing_logger.record(
+                            task_id=task_id,
+                            node_id=self.node_id,
+                            decision="FORWARDED",
+                            reason="Peer had a lower load score",
+                            local_score=local_score,
+                            peer=peer,
+                        )
+
                         logging.info(
                             "Task %s successfully forwarded to peer %s",
                             task_id,
@@ -239,6 +268,8 @@ class Node:
                         response,
                     )
 
+                    fallback_reason = "Peer rejected forwarded task"
+
                 except (
                     ConnectionError,
                     OSError,
@@ -250,6 +281,17 @@ class Node:
                         peer["node_id"][:8],
                     )
 
+                    fallback_reason = "Peer forwarding failed"
+
+            elif peer:
+
+                fallback_reason = "Local node had an equal or lower load score"
+
+            else:
+
+                fallback_reason = "No eligible peer with a fresh load report"
+
+            # Fall back to local task execution.
             logging.info(
                 "Executing task locally on node %s",
                 self.node_id[:8],
@@ -258,6 +300,16 @@ class Node:
             task_id = await self.store.add(
                 payload,
                 origin=self.node_id,
+            )
+
+            # Record the actual local task ID and routing decision.
+            self.routing_logger.record(
+                task_id=task_id,
+                node_id=self.node_id,
+                decision="LOCAL",
+                reason=fallback_reason,
+                local_score=local_score,
+                peer=peer,
             )
 
             return {
