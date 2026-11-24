@@ -61,6 +61,10 @@ class Worker(asyncio.DatagramProtocol):
         self.tasks = set()
         self.in_flight = set()
         self.duplicate_count = 0
+        self.task_map = {}
+        self.sync_running = set()
+        self.cancelled_count = 0
+        self.shutting_down = False
 
     def connection_made(self, transport):
         self.transport = transport
@@ -131,6 +135,15 @@ class Worker(asyncio.DatagramProtocol):
                 )
                 return
 
+            if self.shutting_down:
+                self.transport.sendto(encode({
+                    "type": "result",
+                    "id": task_id,
+                    "ok": False,
+                    "error": "Worker is shutting down",
+                }), addr)
+                return
+
             if self.running + len(self.waiting) >= (
                 self.max_concurrent + self.max_queue
             ):
@@ -163,9 +176,9 @@ class Worker(asyncio.DatagramProtocol):
 
             self.in_flight.add(task_id)
             self.tasks.add(task)
-            task.add_done_callback(self.tasks.discard)
+            self.task_map[task_id] = (task, addr)
             task.add_done_callback(
-                lambda _: self.in_flight.discard(task_id)
+                lambda finished: self._task_done(task_id, finished)
             )
 
         except (
@@ -179,6 +192,81 @@ class Worker(asyncio.DatagramProtocol):
                 type(exc).__name__,
             )
 
+    def _task_done(self, task_id, task):
+        self.tasks.discard(task)
+        self.task_map.pop(task_id, None)
+        self.in_flight.discard(task_id)
+
+        if task_id in self.waiting:
+            self.waiting.remove(task_id)
+
+    async def cancel_task(self, task_id):
+        """Cancel a queued or running asynchronous task."""
+        entry = self.task_map.get(task_id)
+
+        if entry is None:
+            return False
+
+        task, addr = entry
+
+        if task.done() or task_id in self.sync_running:
+            return False
+
+        if task.cancelling():
+            return False
+
+        task.cancel()
+
+        await asyncio.gather(
+            task, return_exceptions=True
+        )
+
+        if not task.cancelled():
+            return False
+
+        self.cancelled_count += 1
+
+        packet = encode({
+            "type": "result",
+            "id": task_id,
+            "ok": False,
+            "error": "Task cancelled",
+        })
+
+        self.completed[task_id] = packet
+
+        if len(self.completed) > 256:
+            self.completed.popitem(last=False)
+
+        self.transport.sendto(packet, addr)
+
+        logger.info(
+            "Task cancelled | task_id=%s", task_id
+        )
+
+        return True
+
+    async def shutdown(self, cancel_pending=False):
+        """Stop accepting new tasks and finish existing work."""
+        self.shutting_down = True
+
+        logger.info("Worker shutdown started")
+
+        if cancel_pending:
+            for task_id in list(self.task_map):
+                await self.cancel_task(task_id)
+
+        if self.tasks:
+            await asyncio.gather(
+                *list(self.tasks),
+                return_exceptions=True,
+            )
+
+        if self.transport is not None:
+            self.transport.close()
+
+        logger.info("Worker shutdown completed")
+
     def get_queue_stats(self):
         """Return worker queue and concurrency statistics."""
         return {
@@ -189,6 +277,8 @@ class Worker(asyncio.DatagramProtocol):
             "max_running_observed": self.max_running_observed,
             "rejected": self.rejected_count,
             "duplicates": self.duplicate_count,
+            "cancelled": self.cancelled_count,
+            "shutting_down": self.shutting_down,
         }
 
     async def execute(self, msg, addr):
@@ -240,9 +330,13 @@ class Worker(asyncio.DatagramProtocol):
                 result = await function(*args, **kwargs)
 
             else:
-                result = await asyncio.to_thread(
-                    function, *args, **kwargs
-                )
+                self.sync_running.add(task_id)
+                try:
+                    result = await asyncio.to_thread(
+                        function, *args, **kwargs
+                    )
+                finally:
+                    self.sync_running.discard(task_id)
 
             packet = encode({
                 "type": "result",

@@ -93,6 +93,45 @@ async def main():
         print("Retry count:", client.get_metrics()["retries"])
         print("Active tasks:", len(worker.in_flight))
 
+        print("\n6. Task Cancellation")
+
+        submission = asyncio.create_task(
+            client.submit(
+                slow_square, 12,
+                timeout=2.0,
+                retries=0,
+            )
+        )
+
+        for _ in range(100):
+            if worker.task_map:
+                break
+            await asyncio.sleep(0.001)
+
+        if not worker.task_map:
+            await submission
+            raise RuntimeError("No active task found")
+
+        task_id = next(iter(worker.task_map))
+
+        cancelled = await worker.cancel_task(task_id)
+
+        try:
+            await submission
+        except RuntimeError as exc:
+            print("Expected cancellation:", exc)
+
+        print("Cancellation successful:", cancelled)
+        print("Cancelled tasks:", worker.cancelled_count)
+        print("Active tasks:", len(worker.in_flight))
+
+        print("\n7. Graceful Worker Shutdown")
+
+        await worker.shutdown()
+
+        print("Worker shutting down:", worker.shutting_down)
+        print("Remaining tasks:", len(worker.tasks))
+
         print("\n========== Demo Completed ==========\n")
 
     finally:
