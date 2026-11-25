@@ -74,8 +74,8 @@ Each node can participate in peer discovery, exchange resource information, eval
 
 | Day | Focus | Status |
 |---|---|---|
-| Day 15 | Routing reliability and decision logging | Completed after final commit |
-| Day 16 | End-to-end distributed task execution | Upcoming |
+| Day 15 | Routing reliability and decision logging | Completed |
+| Day 16 | End-to-end distributed task execution | Completed |
 | Day 17 | Task failure recovery and reassignment | Upcoming |
 | Day 18 | Multi-node load balancing and stress testing | Upcoming |
 | Day 19 | Integration, regression testing and documentation | Upcoming |
@@ -342,13 +342,15 @@ The test validates:
 
 ---
 
-# 🧭 Day 15 – Routing Reliability and Decision Transparency
+# 🧭 Week 3 – Routing Reliability and Distributed Execution
+
+## Day 15 – Routing Reliability and Decision Transparency
 
 Day 15 focused on improving routing reliability and making task scheduling decisions easier to understand and debug.
 
 The objective was to ensure that stale peer information is not used for routing and that tasks can still be processed locally when forwarding to another peer fails.
 
-## 🎯 Objectives
+### 🎯 Objectives
 
 - Validate peer load report freshness.
 - Prevent routing decisions based on stale resource information.
@@ -356,13 +358,13 @@ The objective was to ensure that stale peer information is not used for routing 
 - Provide local execution fallback.
 - Record routing decisions for debugging and monitoring.
 
-## 1. Stale Peer Load Report Handling
+### 1. Stale Peer Load Report Handling
 
 Added and tested routing behavior that ignores outdated peer load reports.
 
 This prevents the scheduler from selecting peers based on old resource information.
 
-## 2. Failed Forwarding and Local Fallback
+### 2. Failed Forwarding and Local Fallback
 
 Validated the behavior when a selected peer becomes unavailable during task forwarding.
 
@@ -374,7 +376,7 @@ Implemented and tested the fallback behavior:
 - Return a successful task acceptance response.
 - Record the local execution decision.
 
-## 3. Routing Decision Logger
+### 3. Routing Decision Logger
 
 Introduced `RoutingDecisionLogger` to maintain structured routing decision records in JSON Lines format.
 
@@ -394,11 +396,7 @@ The logger records decisions such as:
 - `FORWARDED` – Task successfully forwarded to another peer.
 - `LOCAL` – Task retained for local processing.
 
-Log files are maintained separately for individual node ports.
-
-## 4. Day 15 Testing
-
-Created routing reliability tests to validate:
+### 4. Day 15 Testing
 
 | Test Case | Result |
 |---|---|
@@ -424,6 +422,53 @@ The generated JSONL log was also inspected and verified to contain the local fal
 ### Outcome
 
 Improved routing transparency and reliability by adding structured decision logging, stale-report validation and local fallback behavior when peer forwarding fails.
+
+---
+
+## Day 16 – End-to-End Distributed Task Execution
+
+Day 16 focused on validating the distributed task execution workflow and bringing together the major components developed throughout MeshWeaver.
+
+The objective was to move towards a complete task processing pipeline in which nodes can communicate, make routing decisions and participate in distributed execution.
+
+### 🎯 Objectives
+
+- Validate the end-to-end task execution workflow.
+- Connect task submission with routing and execution components.
+- Validate communication between participating nodes.
+- Strengthen the integration of task scheduling and remote execution.
+- Verify the interaction between the existing distributed components.
+- Prepare the system for more advanced task failure recovery and reassignment.
+
+### 1. Distributed Task Execution
+
+Focused on validating the task execution pipeline across the MeshWeaver architecture.
+
+The workflow brings together task handling, peer communication, routing decisions and execution components.
+
+### 2. Component Integration
+
+Continued integration of the existing components:
+
+- Peer communication.
+- Peer discovery foundations.
+- Resource monitoring.
+- Load-aware scheduling.
+- Task routing.
+- Task execution.
+- Local execution fallback.
+
+### 3. End-to-End Workflow Validation
+
+Focused on validating the interaction between the different stages of task processing rather than testing networking and scheduling components independently.
+
+### 4. Preparation for Failure Recovery
+
+Established the next development focus around task failure handling, reassignment and reliable execution when participating nodes become unavailable.
+
+### Outcome
+
+Progressed MeshWeaver towards a more integrated peer-to-peer task broker by focusing on end-to-end distributed task execution and coordination between its major components.
 
 ---
 
@@ -545,6 +590,9 @@ MeshWeaver/
 │   ├── routing_logs/
 │   └── README.md
 │
+├── day16_wk3/
+│   └── README.md
+│
 ├── .gitignore
 ├── README.md
 └── requirements.txt
@@ -557,6 +605,8 @@ Days 12 and 13 extend the existing resource monitoring and gossip implementation
 Day 14 introduces discovery and gossip integration coordination, integration tests and real multi-node cluster testing in `day14_wk2`.
 
 Day 15 introduces routing reliability tests and structured routing decision logging in `day15_wk3`, with the logger integrated into the existing `day5_wk1/node.py` runtime.
+
+Day 16 documents the continued development of the end-to-end distributed task execution workflow.
 
 ---
 
@@ -600,7 +650,7 @@ pytest day14_wk2 day5_wk1/test_resource_gossip_day12_13.py day10_wk2/test_discov
 | Day 14 integration tests | 3 passed |
 | Day 15 routing reliability tests | 2 passed |
 
-*The Day 14 and combined regression results are from their respective earlier test runs. The Day 15 result is from the latest verified run.*
+*The Day 14 and combined regression results are from their respective earlier test runs. The Day 15 result is from the latest verified run. Day 16 test results should be added after its dedicated test execution.*
 
 ---
 
@@ -621,6 +671,7 @@ pytest day14_wk2 day5_wk1/test_resource_gossip_day12_13.py day10_wk2/test_discov
 - Audited discovery and authenticated TCP connectivity across a 10-node local test cluster.
 - Added routing decision logging.
 - Implemented and tested local fallback when peer forwarding fails.
+- Progressed towards end-to-end distributed task execution.
 - Successfully passed 23 Week 2 regression tests and 2 Day 15 routing reliability tests.
 
 ---
@@ -634,6 +685,7 @@ pytest day14_wk2 day5_wk1/test_resource_gossip_day12_13.py day10_wk2/test_discov
 - Further validation is required for distributed task execution under changing network conditions.
 - Cloudpickle deserialization can execute code and should be restricted to trusted peers.
 - Routing decision logging has been validated with focused tests; broader multi-node routing observability remains future work.
+- End-to-end execution and failure recovery require further integration and validation.
 
 ---
 
@@ -643,8 +695,8 @@ The next development phase will focus on:
 
 - Integrating the newer DHT discovery mechanism into the main node runtime.
 - Improving distributed task routing.
-- Implementing and validating task execution across multiple nodes.
-- Strengthening failure recovery and task requeue mechanisms.
+- Strengthening end-to-end task execution.
+- Implementing task failure recovery and reassignment.
 - Improving load-aware scheduling.
 - Testing larger peer networks.
 - Improving security and communication reliability.
@@ -666,7 +718,7 @@ The next development phase will focus on:
 
 MeshWeaver is an ongoing exploration of decentralized task processing using Python's asynchronous networking capabilities.
 
-Across the first 15 development days, the project has progressed from basic UDP and TCP communication to peer discovery, routing foundations, resource gossip, scheduler integration, multi-node reliability testing and routing decision transparency.
+Across the first 16 development days, the project has progressed from basic UDP and TCP communication to peer discovery, routing foundations, resource gossip, scheduler integration, multi-node reliability testing, routing decision transparency and end-to-end distributed task execution development.
 
 The implementation demonstrates how independent nodes can communicate, exchange resource information, monitor peer availability, make load-aware routing decisions and respond to forwarding failures without relying on a traditional centralized message broker.
 
