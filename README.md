@@ -10,8 +10,8 @@
 ![Python](https://img.shields.io/badge/Python-3.13-blue?logo=python&logoColor=white)
 ![AsyncIO](https://img.shields.io/badge/AsyncIO-Asynchronous-purple)
 ![Protocol](https://img.shields.io/badge/Protocol-UDP-orange)
-![Tests](https://img.shields.io/badge/Tests-40%20Passed-brightgreen)
-![Progress](https://img.shields.io/badge/Development-Day%2014-blue)
+![Tests](https://img.shields.io/badge/Tests-50%20Passed-brightgreen)
+![Progress](https://img.shields.io/badge/Development-Day%2015-blue)
 ![Status](https://img.shields.io/badge/Status-In%20Development-yellow)
 
 An asynchronous task execution broker designed to explore
@@ -129,7 +129,8 @@ flowchart TD
 | Queue capacity management | Completed |
 | Local task cancellation | Completed |
 | Graceful worker shutdown | Completed |
-| Remote cancellation protocol | Planned |
+| Remote cancellation protocol | Completed |
+| Client-side cancellation handling | Completed |
 | Persistent task storage | Planned |
 | Multi-worker scheduling | Planned |
 
@@ -161,14 +162,16 @@ MeshWeaver/
 │   ├── test_metrics.py
 │   ├── test_deduplication.py
 │   ├── test_queue.py
-│   └── test_cancellation.py
+│   ├── test_cancellation.py
+│   └── test_remote_cancellation.py
 │
 ├── docs/
 │   ├── week1-progress.md
 │   ├── nov18-progress.md
 │   ├── nov22-progress.md
 │   ├── nov23-progress.md
-│   └── nov24-progress.md
+│   ├── nov24-progress.md
+│   └── nov25-progress.md
 │
 ├── .gitignore
 ├── requirements.txt
@@ -615,7 +618,7 @@ November 18 broker prototype.
 
 </details>
 
-<details open>
+<details>
 <summary><b>Day 14 — Task Cancellation & Graceful Worker Shutdown</b></summary>
 
 ### Date: 24 November 2026
@@ -672,6 +675,61 @@ November 18 broker prototype.
 
 ---
 
+
+<details open>
+<summary><b>Day 15 - Remote Task Cancellation & Client-Side Cancellation Handling</b></summary>
+
+### Date: 25 November 2026
+
+#### Tasks Completed
+
+- Implemented UDP cancellation requests and acknowledgements.
+- Added client-side cancellation API.
+- Added active task ID retrieval.
+- Implemented cancellation retries and timeout handling.
+- Added task owner address validation.
+- Implemented duplicate cancellation handling.
+- Improved cancellation caching and shutdown scheduling.
+- Added ten automated remote cancellation tests.
+- Updated the live demonstration.
+
+#### Files Updated
+
+- meshweaver/broker.py
+- meshweaver/demo.py
+- tests/test_remote_cancellation.py
+- docs/nov25-progress.md
+
+#### Test Results
+
+| Parameter | Result |
+|---|---|
+| Existing tests | 40 passed |
+| New tests | 10 passed |
+| Total tests | 50 passed |
+| Execution time | 5.731 seconds |
+| Test failures | 0 |
+| Pass rate | 100% |
+
+#### Live Demo Results
+
+| Feature | Result |
+|---|---|
+| Cancellation ACK | True |
+| Cancellation successful | True |
+| Cancelled tasks | 1 |
+| Active tasks | 0 |
+| Graceful shutdown | True |
+| Remaining tasks | 0 |
+
+**Implementation Commit:** b0c5a89
+
+**Status:** Completed
+
+</details>
+
+---
+
 ## 📊 Automated Testing Progress
 
 | Date | Testing Module | New Tests | Total Passed |
@@ -683,19 +741,20 @@ November 18 broker prototype.
 | Nov 22 | Duplicate Prevention | 5 | 25 |
 | Nov 23 | Queue Management | 6 | 31 |
 | Nov 24 | Cancellation and Shutdown | 9 | 40 |
+| Nov 25 | Remote Cancellation | 10 | 50 |
 
 ```mermaid
 xychart-beta
     title "Automated Testing Growth"
-    x-axis ["Nov 18", "Nov 19", "Nov 20", "Nov 21", "Nov 22", "Nov 23", "Nov 24"]
-    y-axis "Passed Tests" 0 --> 40
-    bar [4, 8, 11, 20, 25, 31, 40]
+    x-axis ["Nov 18", "Nov 19", "Nov 20", "Nov 21", "Nov 22", "Nov 23", "Nov 24", "Nov 25"]
+    y-axis "Passed Tests" 0 --> 50
+    bar [4, 8, 11, 20, 25, 31, 40, 50]
 ```
 
 ### Latest Test Execution
 
 ```text
-Ran 40 tests in 3.618s
+Ran 50 tests in 5.731s
 
 OK
 ```
@@ -709,7 +768,8 @@ OK
 | Deduplication | 5 | Passed |
 | Queue Management | 6 | Passed |
 | Cancellation | 9 | Passed |
-| **Total** | **40** | **Passed** |
+| Remote Cancellation | 10 | Passed |
+| **Total** | **50** | **Passed** |
 
 ---
 
@@ -729,8 +789,8 @@ OK
 - [x] Queue and concurrency management
 - [x] Local task cancellation
 - [x] Graceful worker shutdown
-- [ ] Remote cancellation protocol
-- [ ] Client-side cancellation handling
+- [x] Remote cancellation protocol
+- [x] Client-side cancellation handling
 - [ ] Shutdown timeout management
 - [ ] Persistent task storage
 - [ ] Multi-worker task scheduling
@@ -748,7 +808,9 @@ OK
 - Task queues and result caches are stored in memory.
 - Task state is lost after a worker restart.
 - Duplicate prevention is limited to individual workers.
-- Cancellation is currently available through the local Worker API.
+- Remote cancellation is supported over trusted localhost UDP.
+- Address validation is not cryptographic authentication.
+- Cancellation timeout does not prove cancellation failed.
 - Running synchronous threads cannot be forcibly cancelled.
 - Async cancellation requires cooperative coroutines.
 - Shutdown may wait indefinitely for non-terminating tasks.
@@ -764,6 +826,7 @@ OK
 - [November 22 Progress](docs/nov22-progress.md)
 - [November 23 Progress](docs/nov23-progress.md)
 - [November 24 Progress](docs/nov24-progress.md)
+- [November 25 Progress](docs/nov25-progress.md)
 
 ---
 
@@ -777,8 +840,8 @@ OK
 | Project | MeshWeaver |
 | Domain | Distributed Systems & Edge Computing |
 | Development Branch | Ameesha |
-| Latest Development Day | Day 14 |
-| Automated Tests Passed | 40 |
+| Latest Development Day | Day 15 |
+| Automated Tests Passed | 50 |
 
 ### Contributions
 
@@ -805,6 +868,6 @@ Python Development Internship.
 
 **Project Status: Active Development**
 
-**Last Updated: 24 November 2026**
+**Last Updated: 25 November 2026**
 
 </div>
