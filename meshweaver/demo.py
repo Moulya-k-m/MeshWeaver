@@ -93,7 +93,7 @@ async def main():
         print("Retry count:", client.get_metrics()["retries"])
         print("Active tasks:", len(worker.in_flight))
 
-        print("\n6. Task Cancellation")
+        print("\n6. Remote Task Cancellation")
 
         submission = asyncio.create_task(
             client.submit(
@@ -104,17 +104,28 @@ async def main():
         )
 
         for _ in range(100):
-            if worker.task_map:
+            active_ids = client.get_active_task_ids()
+
+            if active_ids:
                 break
+
             await asyncio.sleep(0.001)
 
-        if not worker.task_map:
+        if not active_ids:
             await submission
             raise RuntimeError("No active task found")
 
-        task_id = next(iter(worker.task_map))
+        task_id = active_ids[0]
 
-        cancelled = await worker.cancel_task(task_id)
+        print("Remote cancellation requested:", task_id)
+
+        cancelled = await client.cancel_task(
+            task_id,
+            timeout=1.0,
+            retries=2,
+        )
+
+        print("Cancellation ACK received:", cancelled)
 
         try:
             await submission

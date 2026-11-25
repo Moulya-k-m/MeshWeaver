@@ -64,6 +64,8 @@ class Worker(asyncio.DatagramProtocol):
         self.task_map = {}
         self.sync_running = set()
         self.cancelled_count = 0
+        self.cancelled_owners = OrderedDict()
+        self.cancel_handlers = set()
         self.shutting_down = False
 
     def connection_made(self, transport):
@@ -76,6 +78,27 @@ class Worker(asyncio.DatagramProtocol):
 
         try:
             msg = decode(data)
+
+            if msg.get("type") == "cancel":
+                task_id = msg.get("id")
+                request_id = msg.get("request_id")
+
+                if (
+                    not isinstance(task_id, str)
+                    or not 0 < len(task_id) <= 64
+                    or not isinstance(request_id, str)
+                    or not 0 < len(request_id) <= 64
+                ):
+                    raise ValueError("Invalid cancellation message")
+
+                handler = asyncio.create_task(
+                    self._handle_cancel(task_id, request_id, addr)
+                )
+                self.cancel_handlers.add(handler)
+                handler.add_done_callback(
+                    self.cancel_handlers.discard
+                )
+                return
 
             if msg.get("type") == "ping":
                 ping_id = msg.get("id")
@@ -193,6 +216,34 @@ class Worker(asyncio.DatagramProtocol):
             )
 
     def _task_done(self, task_id, task):
+        entry = self.task_map.get(task_id)
+
+        if task.cancelled() and entry is not None:
+            _, addr = entry
+
+            packet = encode({
+                "type": "result",
+                "id": task_id,
+                "ok": False,
+                "error": "Task cancelled",
+            })
+
+            self.completed[task_id] = packet
+            self.cancelled_owners[task_id] = addr
+            self.cancelled_count += 1
+
+            if len(self.completed) > 256:
+                self.completed.popitem(last=False)
+
+            if len(self.cancelled_owners) > 256:
+                self.cancelled_owners.popitem(last=False)
+
+            self.transport.sendto(packet, addr)
+
+            logger.info(
+                "Task cancelled | task_id=%s", task_id
+            )
+
         self.tasks.discard(task)
         self.task_map.pop(task_id, None)
         self.in_flight.discard(task_id)
@@ -221,30 +272,63 @@ class Worker(asyncio.DatagramProtocol):
             task, return_exceptions=True
         )
 
-        if not task.cancelled():
-            return False
+        return task.cancelled()
 
-        self.cancelled_count += 1
+    async def _handle_cancel(self, task_id, request_id, addr):
+        """Process a cancellation request from the task owner."""
+        entry = self.task_map.get(task_id)
+        cancelled = False
+        reason = "Task not found or already completed"
 
-        packet = encode({
-            "type": "result",
+        if (
+            task_id in self.completed
+            and self.cancelled_owners.get(task_id) == addr
+            and decode(self.completed[task_id]).get("error")
+                == "Task cancelled"
+        ):
+            cancelled = True
+            reason = "Task cancelled"
+
+        elif entry is not None:
+            task, owner = entry
+
+            if owner != addr:
+                reason = "Cancellation not authorized"
+
+            elif task_id in self.sync_running:
+                reason = "Running synchronous task cannot be cancelled"
+
+            elif task.cancelling():
+                await asyncio.gather(
+                    task, return_exceptions=True
+                )
+                cancelled = task.cancelled()
+                reason = (
+                    "Task cancelled" if cancelled
+                    else "Task cancellation rejected"
+                )
+
+            else:
+                cancelled = await self.cancel_task(task_id)
+                reason = (
+                    "Task cancelled" if cancelled
+                    else "Task cancellation rejected"
+                )
+
+        response = encode({
+            "type": "cancel_ack",
             "id": task_id,
-            "ok": False,
-            "error": "Task cancelled",
+            "request_id": request_id,
+            "ok": cancelled,
+            "reason": reason,
         })
 
-        self.completed[task_id] = packet
-
-        if len(self.completed) > 256:
-            self.completed.popitem(last=False)
-
-        self.transport.sendto(packet, addr)
+        self.transport.sendto(response, addr)
 
         logger.info(
-            "Task cancelled | task_id=%s", task_id
+            "Cancellation response | task_id=%s | success=%s",
+            task_id, cancelled,
         )
-
-        return True
 
     async def shutdown(self, cancel_pending=False):
         """Stop accepting new tasks and finish existing work."""
@@ -253,12 +337,23 @@ class Worker(asyncio.DatagramProtocol):
         logger.info("Worker shutdown started")
 
         if cancel_pending:
-            for task_id in list(self.task_map):
-                await self.cancel_task(task_id)
+            await asyncio.gather(
+                *(
+                    self.cancel_task(task_id)
+                    for task_id in list(self.task_map)
+                ),
+                return_exceptions=True,
+            )
 
         if self.tasks:
             await asyncio.gather(
                 *list(self.tasks),
+                return_exceptions=True,
+            )
+
+        if self.cancel_handlers:
+            await asyncio.gather(
+                *list(self.cancel_handlers),
                 return_exceptions=True,
             )
 
@@ -297,7 +392,7 @@ class Worker(asyncio.DatagramProtocol):
         finally:
             if task_id in self.waiting:
                 self.waiting.remove(task_id)
-            self.in_flight.discard(task_id)
+            # The done callback owns final tracking cleanup.
 
     async def _execute_task(self, msg, addr):
         task_id = msg["id"]
@@ -387,6 +482,7 @@ class Client(asyncio.DatagramProtocol):
         self.transport = None
         self.pending = {}
         self.health_pending = {}
+        self.cancel_pending = {}
 
         # Task execution metrics
         self.metrics = TaskMetrics()
@@ -403,6 +499,22 @@ class Client(asyncio.DatagramProtocol):
             msg = decode(data)
             msg_type = msg.get("type")
             msg_id = msg.get("id")
+
+            if msg_type == "cancel_ack":
+                request_id = msg.get("request_id")
+                entry = self.cancel_pending.get(request_id)
+
+                if entry is not None:
+                    task_id, future = entry
+
+                    if (
+                        msg_id == task_id
+                        and isinstance(msg.get("ok"), bool)
+                        and not future.done()
+                    ):
+                        future.set_result(msg)
+
+                return
 
             if msg_type == "pong":
                 future = self.health_pending.get(msg_id)
@@ -433,6 +545,61 @@ class Client(asyncio.DatagramProtocol):
                 "Invalid response rejected | error=%s",
                 type(exc).__name__,
             )
+
+    def get_active_task_ids(self):
+        """Return IDs of locally pending submissions."""
+        return [
+            task_id
+            for task_id, future in self.pending.items()
+            if not future.done()
+        ]
+
+    async def cancel_task(self, task_id, timeout=1.0, retries=2):
+        """Request cancellation through the UDP protocol."""
+        if not isinstance(task_id, str) or not 0 < len(task_id) <= 64:
+            raise ValueError("Invalid task id")
+
+        if timeout <= 0:
+            raise ValueError("timeout must be positive")
+
+        if not isinstance(retries, int) or retries < 0:
+            raise ValueError("retries must be a non-negative integer")
+
+        request_id = uuid.uuid4().hex
+        loop = asyncio.get_running_loop()
+        future = loop.create_future()
+
+        self.cancel_pending[request_id] = (task_id, future)
+
+        packet = encode({
+            "type": "cancel",
+            "id": task_id,
+            "request_id": request_id,
+        })
+
+        try:
+            for attempt in range(retries + 1):
+                self.transport.sendto(packet)
+
+                try:
+                    response = await asyncio.wait_for(
+                        asyncio.shield(future),
+                        timeout,
+                    )
+
+                    return response["ok"]
+
+                except asyncio.TimeoutError:
+                    if attempt == retries:
+                        raise TimeoutError(
+                            "Cancellation response timed out"
+                        ) from None
+
+        finally:
+            self.cancel_pending.pop(request_id, None)
+
+            if not future.done():
+                future.cancel()
 
     def get_metrics(self):
         """Return current task execution statistics."""
