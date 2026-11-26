@@ -1,14 +1,18 @@
 
 import asyncio
 
-from meshweaver.protocol import create_message, encode_message, decode_message
+from meshweaver.protocol import (
+    create_message,
+    encode_message,
+    decode_message
+)
 from meshweaver.identity import NodeIdentity
 from meshweaver.peer import Peer, PeerRegistry
+from meshweaver.dht import DHT
 
 
 def execute_task(payload):
     """Execute a supported remote task."""
-
     operation = payload.get("operation")
     args = payload.get("args", [])
 
@@ -30,13 +34,11 @@ def execute_task(payload):
         for number in args[1:]:
             if number == 0:
                 raise ZeroDivisionError("Cannot divide by zero")
-
             result /= number
 
         return result
 
-    else:
-        raise ValueError(f"Unsupported operation: {operation}")
+    raise ValueError(f"Unsupported operation: {operation}")
 
 
 class MeshNode:
@@ -46,32 +48,27 @@ class MeshNode:
         self.host = host
         self.port = port
 
-        # Give this node a unique identity.
         self.identity = NodeIdentity(node_id)
-
-        # Maintain information about other nodes.
         self.peer_registry = PeerRegistry()
-
-        # TCP server instance.
         self.server = None
 
+        # DHT discovery and distributed storage.
+        self.dht = DHT(self)
+
     def get_node_id(self):
-        """Return this node's unique ID."""
         return self.identity.get_id()
 
     def add_peer(self, peer):
-        """Register another node in the peer registry."""
         if peer.node_id == self.get_node_id():
             raise ValueError("A node cannot register itself as a peer")
 
         self.peer_registry.add_peer(peer)
 
     def get_peers(self):
-        """Return all registered peers."""
         return self.peer_registry.get_all_peers()
 
     async def handle_client(self, reader, writer):
-        """Handle incoming client connections."""
+        """Handle incoming TCP messages."""
 
         address = writer.get_extra_info("peername")
         print(f"Node {self.get_node_id()} connected to {address}")
@@ -96,9 +93,9 @@ class MeshNode:
                             result = execute_task(message["payload"])
 
                             response = create_message(
-                                message_type="result",
-                                sender=self.get_node_id(),
-                                payload={
+                                "result",
+                                self.get_node_id(),
+                                {
                                     "status": "success",
                                     "result": result
                                 }
@@ -106,19 +103,27 @@ class MeshNode:
 
                         except Exception as error:
                             response = create_message(
-                                message_type="result",
-                                sender=self.get_node_id(),
-                                payload={
+                                "result",
+                                self.get_node_id(),
+                                {
                                     "status": "error",
                                     "error": str(error)
                                 }
                             )
 
+                    elif message["type"] in {
+                        "ping",
+                        "find_node",
+                        "store",
+                        "find_value"
+                    }:
+                        response = await self.dht.handle_message(message)
+
                     else:
                         response = create_message(
-                            message_type="ack",
-                            sender=self.get_node_id(),
-                            payload=f"Message received: {message['payload']}"
+                            "ack",
+                            self.get_node_id(),
+                            f"Message received: {message['payload']}"
                         )
 
                     writer.write(encode_message(response).encode())
@@ -129,7 +134,12 @@ class MeshNode:
 
         finally:
             writer.close()
-            await writer.wait_closed()
+
+            try:
+                await writer.wait_closed()
+            except OSError:
+                pass
+
             print(f"Disconnected: {address}")
 
     async def start(self):
@@ -149,6 +159,18 @@ class MeshNode:
             f"running at {self.host}:{self.port}"
         )
 
+    async def join_network(self, bootstrap_host, bootstrap_port,
+                           bootstrap_node_id):
+        """Join an existing MeshWeaver network."""
+
+        bootstrap_peer = Peer(
+            node_id=bootstrap_node_id,
+            host=bootstrap_host,
+            port=bootstrap_port
+        )
+
+        return await self.dht.join(bootstrap_peer)
+
     async def stop(self):
         """Stop this node's TCP server."""
 
@@ -160,7 +182,7 @@ class MeshNode:
             print(f"Node {self.get_node_id()} stopped")
 
     async def serve_forever(self):
-        """Keep the node running and accepting connections."""
+        """Keep the node running."""
 
         if self.server is None:
             await self.start()
@@ -174,8 +196,10 @@ async def main():
 
     try:
         await node.serve_forever()
+
     except KeyboardInterrupt:
         print("Shutting down MeshWeaver node...")
+
     finally:
         await node.stop()
 
@@ -200,19 +224,14 @@ async def handle_client(reader, writer):
             try:
                 message = decode_message(data.decode().strip())
 
-                print(
-                    f"Received from {message['sender']}: "
-                    f"{message['payload']}"
-                )
-
                 if message["type"] == "task":
                     try:
                         result = execute_task(message["payload"])
 
                         response = create_message(
-                            message_type="result",
-                            sender="MeshWeaver",
-                            payload={
+                            "result",
+                            "MeshWeaver",
+                            {
                                 "status": "success",
                                 "result": result
                             }
@@ -220,9 +239,9 @@ async def handle_client(reader, writer):
 
                     except Exception as error:
                         response = create_message(
-                            message_type="result",
-                            sender="MeshWeaver",
-                            payload={
+                            "result",
+                            "MeshWeaver",
+                            {
                                 "status": "error",
                                 "error": str(error)
                             }
@@ -230,9 +249,9 @@ async def handle_client(reader, writer):
 
                 else:
                     response = create_message(
-                        message_type="ack",
-                        sender="MeshWeaver",
-                        payload=f"Message received: {message['payload']}"
+                        "ack",
+                        "MeshWeaver",
+                        f"Message received: {message['payload']}"
                     )
 
                 writer.write(encode_message(response).encode())
@@ -243,5 +262,8 @@ async def handle_client(reader, writer):
 
     finally:
         writer.close()
-        await writer.wait_closed()
-        print(f"Disconnected: {address}")
+
+        try:
+            await writer.wait_closed()
+        except OSError:
+            pass
