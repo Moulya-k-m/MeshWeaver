@@ -143,6 +143,26 @@ async def main():
         print("Worker shutting down:", worker.shutting_down)
         print("Remaining tasks:", len(worker.tasks))
 
+
+        print("\n8. Task Lifecycle Summary")
+
+        record = worker.get_task_status(task_id)
+
+        for key, value in record.items():
+            print(f"{key}: {value}")
+
+        print("\nWorker task state counts:")
+
+        for state, count in worker.get_task_state_counts().items():
+            print(f"{state}: {count}")
+
+        print("\n9. Dedicated Cancellation Metrics")
+
+        metrics = client.get_metrics()
+
+        for key, value in metrics.items():
+            print(f"{key}: {value}")
+
         print("\n========== Demo Completed ==========\n")
 
     finally:

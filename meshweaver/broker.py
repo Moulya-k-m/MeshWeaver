@@ -12,6 +12,7 @@ from collections import OrderedDict, deque
 import cloudpickle
 
 from meshweaver.metrics import TaskMetrics
+from meshweaver.task_state import TaskRegistry, TaskState
 
 
 MAX_PACKET = 60000
@@ -67,6 +68,7 @@ class Worker(asyncio.DatagramProtocol):
         self.cancelled_owners = OrderedDict()
         self.cancel_handlers = set()
         self.shutting_down = False
+        self.registry = TaskRegistry()
 
     def connection_made(self, transport):
         self.transport = transport
@@ -192,6 +194,8 @@ class Worker(asyncio.DatagramProtocol):
                 addr,
             )
 
+            self.registry.create(task_id)
+            self.registry.transition(task_id, TaskState.QUEUED)
             self.waiting.append(task_id)
             task = asyncio.create_task(
                 self.execute(msg, addr)
@@ -226,11 +230,15 @@ class Worker(asyncio.DatagramProtocol):
                 "id": task_id,
                 "ok": False,
                 "error": "Task cancelled",
+                "cancelled": True,
             })
 
             self.completed[task_id] = packet
             self.cancelled_owners[task_id] = addr
             self.cancelled_count += 1
+            self.registry.transition(
+                task_id, TaskState.CANCELLED, 'Task cancelled'
+            )
 
             if len(self.completed) > 256:
                 self.completed.popitem(last=False)
@@ -362,6 +370,13 @@ class Worker(asyncio.DatagramProtocol):
 
         logger.info("Worker shutdown completed")
 
+    def get_task_status(self, task_id):
+        """Return a copy of the worker task record."""
+        return self.registry.get(task_id)
+
+    def get_task_state_counts(self):
+        return self.registry.snapshot()
+
     def get_queue_stats(self):
         """Return worker queue and concurrency statistics."""
         return {
@@ -382,6 +397,7 @@ class Worker(asyncio.DatagramProtocol):
             async with self.semaphore:
                 self.waiting.remove(task_id)
                 self.running += 1
+                self.registry.transition(task_id, TaskState.RUNNING)
                 self.max_running_observed = max(
                     self.max_running_observed, self.running
                 )
@@ -464,6 +480,12 @@ class Worker(asyncio.DatagramProtocol):
                 time.perf_counter() - start_time,
             )
 
+        outcome = decode(packet)
+        self.registry.transition(
+            task_id,
+            TaskState.COMPLETED if outcome['ok'] else TaskState.FAILED,
+            outcome.get('error'),
+        )
         self.completed[task_id] = packet
         self.in_flight.discard(task_id)
 
@@ -565,6 +587,7 @@ class Client(asyncio.DatagramProtocol):
         if not isinstance(retries, int) or retries < 0:
             raise ValueError("retries must be a non-negative integer")
 
+        self.metrics.cancellation_requests += 1
         request_id = uuid.uuid4().hex
         loop = asyncio.get_running_loop()
         future = loop.create_future()
@@ -587,9 +610,16 @@ class Client(asyncio.DatagramProtocol):
                         timeout,
                     )
 
+                    if response["ok"]:
+                        self.metrics.cancellation_accepted += 1
+                    else:
+                        self.metrics.cancellation_rejected += 1
                     return response["ok"]
 
                 except asyncio.TimeoutError:
+                    self.metrics.cancellation_timeouts += 1
+                    if attempt < retries:
+                        self.metrics.cancellation_retries += 1
                     if attempt == retries:
                         raise TimeoutError(
                             "Cancellation response timed out"
@@ -675,6 +705,7 @@ class Client(asyncio.DatagramProtocol):
 
         self.metrics.record_submission()
 
+        remotely_cancelled = False
         future = None
 
         logger.info(
@@ -740,6 +771,7 @@ class Client(asyncio.DatagramProtocol):
                     continue
 
                 if not response.get("ok"):
+                    remotely_cancelled = response.get("cancelled") is True
                     logger.error(
                         "Remote task failed | task_id=%s",
                         task_id,
@@ -766,7 +798,10 @@ class Client(asyncio.DatagramProtocol):
         except (Exception, asyncio.CancelledError):
             duration = time.perf_counter() - start_time
 
-            self.metrics.record_failure(duration)
+            if remotely_cancelled:
+                self.metrics.record_cancellation(duration)
+            else:
+                self.metrics.record_failure(duration)
             raise
 
         finally:
