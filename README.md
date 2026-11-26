@@ -5,7 +5,7 @@
 
 MeshWeaver is a decentralized, peer-to-peer asynchronous task broker built using Python. It aims to distribute tasks across multiple nodes without depending on centralized message brokers such as Redis or RabbitMQ.
 
-The project explores peer discovery, asynchronous communication, distributed resource monitoring, load-aware task scheduling, remote task execution, routing reliability and fault handling.
+The project explores peer discovery, asynchronous communication, distributed resource monitoring, load-aware task scheduling, remote task execution, routing reliability, execution tracking, task analytics and fault handling.
 
 ---
 
@@ -24,6 +24,8 @@ Each node can participate in peer discovery, exchange resource information, eval
 - Support distributed task scheduling and execution.
 - Monitor peer availability and handle node failures.
 - Improve routing reliability through fallback mechanisms.
+- Track task execution states and maintain persistent execution history.
+- Analyse task performance and node-wise execution statistics.
 - Minimize external dependencies using Python's asynchronous networking capabilities.
 
 ---
@@ -45,7 +47,7 @@ Each node can participate in peer discovery, exchange resource information, eval
 
 ---
 
-## 📅 Development Progress
+# 📅 Development Progress
 
 ### Week 1 – Communication and Core Foundations
 
@@ -75,10 +77,11 @@ Each node can participate in peer discovery, exchange resource information, eval
 | Day | Focus | Status |
 |---|---|---|
 | Day 15 | Routing reliability and decision logging | Completed |
-| Day 16 | End-to-end distributed task execution | Completed |
-| Day 17 | Task failure recovery and reassignment | Upcoming |
-| Day 18 | Multi-node load balancing and stress testing | Upcoming |
-| Day 19 | Integration, regression testing and documentation | Upcoming |
+| Day 16 | Distributed execution tracking and persistent history | Completed |
+| Day 17 | Task execution analytics and performance monitoring | Completed |
+| Day 18 | Task failure recovery and reassignment | Upcoming |
+| Day 19 | Multi-node load balancing and stress testing | Upcoming |
+| Day 20 | Integration, regression testing and documentation | Upcoming |
 
 ---
 
@@ -340,6 +343,10 @@ The test validates:
 
 **Final verified result: 23 passed in 10.90 seconds.**
 
+### Outcome
+
+Validated peer discovery, authenticated resource exchange, scheduler updates and peer failure handling through integration and regression testing.
+
 ---
 
 # 🧭 Week 3 – Routing Reliability and Distributed Execution
@@ -425,50 +432,212 @@ Improved routing transparency and reliability by adding structured decision logg
 
 ---
 
-## Day 16 – End-to-End Distributed Task Execution
+## Day 16 – Distributed Execution Tracking and Persistent History
 
-Day 16 focused on validating the distributed task execution workflow and bringing together the major components developed throughout MeshWeaver.
+Day 16 focused on introducing a dedicated execution tracking mechanism to monitor the lifecycle of distributed tasks.
 
-The objective was to move towards a complete task processing pipeline in which nodes can communicate, make routing decisions and participate in distributed execution.
+The objective was to maintain task execution states, record important execution events and preserve task history across application restarts.
 
 ### 🎯 Objectives
 
-- Validate the end-to-end task execution workflow.
-- Connect task submission with routing and execution components.
-- Validate communication between participating nodes.
-- Strengthen the integration of task scheduling and remote execution.
-- Verify the interaction between the existing distributed components.
-- Prepare the system for more advanced task failure recovery and reassignment.
+- Track the lifecycle of individual tasks.
+- Generate unique task identifiers.
+- Record task submission, assignment, completion and failure.
+- Maintain persistent execution history.
+- Restore task states after restarting the application.
+- Validate task tracking and history recovery.
 
-### 1. Distributed Task Execution
+### 1. Execution Tracker
 
-Focused on validating the task execution pipeline across the MeshWeaver architecture.
+Implemented an `ExecutionTracker` class to maintain the latest state of each tracked task.
 
-The workflow brings together task handling, peer communication, routing decisions and execution components.
+Supported task states:
 
-### 2. Component Integration
+- `SUBMITTED`
+- `ASSIGNED`
+- `COMPLETED`
+- `FAILED`
 
-Continued integration of the existing components:
+### 2. Task Lifecycle Management
 
-- Peer communication.
-- Peer discovery foundations.
-- Resource monitoring.
-- Load-aware scheduling.
-- Task routing.
-- Task execution.
-- Local execution fallback.
+Implemented methods for:
 
-### 3. End-to-End Workflow Validation
+- `submit()` – Generates a unique task ID and records submission.
+- `assign()` – Records the node assigned to a task.
+- `complete()` – Records successful task completion and its result.
+- `fail()` – Records task failure and the associated error.
+- `get_status()` – Retrieves the current task state.
+- `get_task()` – Retrieves task information.
+- `get_all_tasks()` – Returns tracked task states.
 
-Focused on validating the interaction between the different stages of task processing rather than testing networking and scheduling components independently.
+### 3. Persistent Execution History
 
-### 4. Preparation for Failure Recovery
+Introduced JSONL-based execution history storage.
 
-Established the next development focus around task failure handling, reassignment and reliable execution when participating nodes become unavailable.
+Each event records:
+
+- Task ID.
+- Execution status.
+- Node information.
+- Task result.
+- Error information.
+- UTC timestamp.
+
+This allows task execution events to be stored independently of the application's in-memory state.
+
+### 4. History Restoration
+
+Implemented `load_history()` to restore task information from the persistent JSONL file.
+
+Features include:
+
+- Reading previously recorded execution events.
+- Reconstructing the latest state of each task.
+- Skipping corrupted JSON entries.
+- Preserving task history across application restarts.
+
+### 5. Task State Validation
+
+Added validation to prevent:
+
+- Operations on unknown task IDs.
+- Reassigning completed tasks.
+- Modifying tasks that have already reached a terminal state.
+
+### Day 16 Outcome
+
+Established a persistent task execution tracking foundation that records task lifecycle events and supports state restoration after application restarts.
+
+---
+
+## Day 17 – Distributed Task Execution Analytics
+
+Day 17 focused on extending the execution tracking mechanism developed on Day 16 with a separate analytics module.
+
+The objective was to analyse persistent task execution history and generate useful insights into task completion, failure rates, node-level execution distribution and average execution time.
+
+### 🎯 Objectives
+
+- Analyse historical task execution events.
+- Calculate overall task execution statistics.
+- Identify completed, failed and pending tasks.
+- Calculate task execution success rates.
+- Generate node-wise execution statistics.
+- Calculate average task execution time.
+- Handle corrupted and missing execution history.
+- Provide a terminal-based analytics interface.
+
+### 1. Task Execution Analytics Module
+
+Developed a separate `TaskAnalytics` class to process execution history generated by the Day 16 Execution Tracker.
+
+The analytics module reads JSONL records independently without modifying the existing execution tracker.
+
+### 2. Execution History Loading
+
+Implemented `load_events()` to retrieve execution records from the persistent history file.
+
+Features include:
+
+- JSONL event loading.
+- Validation of essential event fields.
+- Handling missing history files.
+- Skipping malformed JSON entries.
+- Maintaining a separate collection of loaded execution events.
+
+### 3. Task Summary Analytics
+
+Implemented `get_summary()` to calculate overall execution statistics.
+
+The summary includes:
+
+- Total number of unique tasks.
+- Completed tasks.
+- Failed tasks.
+- Pending tasks.
+- Overall execution success rate.
+
+The success rate is calculated using completed and failed tasks:
+
+```text
+Success Rate = (Completed Tasks / Finished Tasks) × 100
+```
+
+Pending tasks are excluded from the success-rate calculation.
+
+### 4. Node-wise Execution Statistics
+
+Implemented `get_node_statistics()` to analyse task distribution across individual nodes.
+
+The module tracks:
+
+- Number of completed tasks per node.
+- Number of failed tasks per node.
+- Number of tasks remaining in other execution states.
+
+This provides visibility into the recorded task outcomes associated with individual nodes.
+
+### 5. Average Execution Time Analysis
+
+Implemented `get_average_execution_time()` to calculate the average time between task submission and its terminal execution event.
+
+The calculation considers:
+
+- Initial task submission timestamp.
+- Final completion or failure timestamp.
+- Multiple execution events belonging to the same task.
+- Both successful and failed task executions.
+
+Tasks without valid submission and terminal timestamps are excluded from the calculation.
+
+### 6. Terminal Analytics Runner
+
+Created `run_analytics.py` to display execution analytics directly in the terminal.
+
+The runner displays:
+
+- Total tasks.
+- Completed tasks.
+- Failed tasks.
+- Pending tasks.
+- Success rate.
+- Node-wise execution statistics.
+- Average execution time.
+
+It also handles empty or unavailable execution history without terminating unexpectedly.
+
+### 7. Automated Testing
+
+Created a dedicated pytest test suite covering the analytics implementation.
+
+| Test Case | Result |
+|---|---|
+| Execution event loading | PASS |
+| Task summary calculation | PASS |
+| Node-wise statistics | PASS |
+| Average execution time | PASS |
+| Empty history handling | PASS |
+| Corrupted history handling | PASS |
+| Missing history file handling | PASS |
+| Failed task execution-time calculation | PASS |
+
+**Final verified result: 8 passed in 0.17 seconds.**
+
+### Files Created
+
+| File | Description |
+|---|---|
+| `task_analytics.py` | Core task analytics implementation |
+| `test_task_analytics.py` | Automated analytics test suite |
+| `run_analytics.py` | Terminal-based analytics runner |
 
 ### Outcome
 
-Progressed MeshWeaver towards a more integrated peer-to-peer task broker by focusing on end-to-end distributed task execution and coordination between its major components.
+Successfully developed an independent task execution analytics module that extends MeshWeaver's monitoring capabilities.
+
+The implementation provides visibility into task completion, execution failures, node-wise task distribution and average execution time.
+
+It also establishes a foundation for future performance monitoring, workload analysis and distributed execution optimization.
 
 ---
 
@@ -591,7 +760,14 @@ MeshWeaver/
 │   └── README.md
 │
 ├── day16_wk3/
+│   ├── execution_tracker.py
+│   ├── test_execution_tracker.py
 │   └── README.md
+│
+├── day17_wk3/
+│   ├── task_analytics.py
+│   ├── test_task_analytics.py
+│   └── run_analytics.py
 │
 ├── .gitignore
 ├── README.md
@@ -606,7 +782,9 @@ Day 14 introduces discovery and gossip integration coordination, integration tes
 
 Day 15 introduces routing reliability tests and structured routing decision logging in `day15_wk3`, with the logger integrated into the existing `day5_wk1/node.py` runtime.
 
-Day 16 documents the continued development of the end-to-end distributed task execution workflow.
+Day 16 introduces dedicated task lifecycle tracking and persistent execution history.
+
+Day 17 introduces independent task analytics based on the execution history generated by Day 16.
 
 ---
 
@@ -636,21 +814,50 @@ Run the Day 15 routing reliability tests:
 pytest day15_wk3 -v
 ```
 
+Run the Day 16 execution tracker tests:
+
+```bash
+pytest day16_wk3 -v
+```
+
+Run the Day 17 analytics tests:
+
+```bash
+pytest day17_wk3 -v
+```
+
+Run the Day 17 analytics runner:
+
+```bash
+python day17_wk3/run_analytics.py
+```
+
 Run the combined Week 2 regression suite:
 
 ```bash
 pytest day14_wk2 day5_wk1/test_resource_gossip_day12_13.py day10_wk2/test_discovery.py day11_wk2/test_lookup_manager.py day11_wk2/test_find_node.py -v
 ```
 
-### Latest Verified Test Results
+---
 
-| Test Suite | Result |
+## Latest Verified Test Results
+
+| Test Suite | Verified Result |
 |---|---:|
 | Week 2 combined regression suite | 23 passed |
 | Day 14 integration tests | 3 passed |
 | Day 15 routing reliability tests | 2 passed |
+| Day 17 task analytics tests | 8 passed |
 
-*The Day 14 and combined regression results are from their respective earlier test runs. The Day 15 result is from the latest verified run. Day 16 test results should be added after its dedicated test execution.*
+**Day 17 latest test execution:**
+
+```text
+collected 8 items
+
+8 passed in 0.17s
+```
+
+*Note: These results represent separate verified test runs, not one combined execution. Day 16 test results should be added after its dedicated test execution.*
 
 ---
 
@@ -671,8 +878,14 @@ pytest day14_wk2 day5_wk1/test_resource_gossip_day12_13.py day10_wk2/test_discov
 - Audited discovery and authenticated TCP connectivity across a 10-node local test cluster.
 - Added routing decision logging.
 - Implemented and tested local fallback when peer forwarding fails.
-- Progressed towards end-to-end distributed task execution.
-- Successfully passed 23 Week 2 regression tests and 2 Day 15 routing reliability tests.
+- Developed task lifecycle tracking with unique task identifiers.
+- Implemented persistent JSONL execution history.
+- Added task state restoration after application restart.
+- Developed task execution summary analytics.
+- Implemented node-wise execution statistics.
+- Added average task execution-time calculations.
+- Created a terminal-based analytics runner.
+- Successfully passed 23 Week 2 regression tests, 2 Day 15 reliability tests and 8 Day 17 analytics tests.
 
 ---
 
@@ -685,6 +898,9 @@ pytest day14_wk2 day5_wk1/test_resource_gossip_day12_13.py day10_wk2/test_discov
 - Further validation is required for distributed task execution under changing network conditions.
 - Cloudpickle deserialization can execute code and should be restricted to trusted peers.
 - Routing decision logging has been validated with focused tests; broader multi-node routing observability remains future work.
+- Day 16 execution tracking currently maintains its in-memory state and persistent JSONL event history; further integration with the complete distributed execution pipeline is required.
+- Day 17 analytics currently reads the execution history file independently. Actual analytics require recorded execution events in that file.
+- Automated analytics tests currently use temporary JSONL histories to validate calculations and edge cases.
 - End-to-end execution and failure recovery require further integration and validation.
 
 ---
@@ -693,13 +909,15 @@ pytest day14_wk2 day5_wk1/test_resource_gossip_day12_13.py day10_wk2/test_discov
 
 The next development phase will focus on:
 
-- Integrating the newer DHT discovery mechanism into the main node runtime.
-- Improving distributed task routing.
-- Strengthening end-to-end task execution.
 - Implementing task failure recovery and reassignment.
-- Improving load-aware scheduling.
+- Integrating execution tracking with the distributed task processing pipeline.
+- Improving distributed task routing.
+- Strengthening load-aware scheduling.
+- Improving node-level workload distribution.
 - Testing larger peer networks.
+- Introducing multi-node stress testing.
 - Improving security and communication reliability.
+- Expanding execution analytics with additional performance metrics.
 - Validating the complete end-to-end task broker workflow.
 
 ---
@@ -718,8 +936,10 @@ The next development phase will focus on:
 
 MeshWeaver is an ongoing exploration of decentralized task processing using Python's asynchronous networking capabilities.
 
-Across the first 16 development days, the project has progressed from basic UDP and TCP communication to peer discovery, routing foundations, resource gossip, scheduler integration, multi-node reliability testing, routing decision transparency and end-to-end distributed task execution development.
+Across the first 17 development days, the project has progressed from basic UDP and TCP communication to peer discovery, routing foundations, resource gossip, scheduler integration, multi-node reliability testing, routing decision transparency, persistent task execution tracking and task execution analytics.
 
-The implementation demonstrates how independent nodes can communicate, exchange resource information, monitor peer availability, make load-aware routing decisions and respond to forwarding failures without relying on a traditional centralized message broker.
+The implementation explores how independent nodes can communicate, exchange resource information, monitor peer availability, make load-aware routing decisions, respond to forwarding failures and maintain visibility into task execution without relying on a traditional centralized message broker.
 
-With successful Week 2 regression testing and Day 15 routing reliability tests, MeshWeaver has established a foundation for further development towards a reliable peer-to-peer asynchronous task broker.
+With successful Week 2 regression testing, Day 15 routing reliability tests and Day 17 analytics testing, MeshWeaver has established a foundation for further development towards a reliable peer-to-peer asynchronous task broker.
+
+**Smart Routing. Distributed Execution. Decentralized Coordination.**
