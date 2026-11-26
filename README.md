@@ -10,8 +10,8 @@
 ![Python](https://img.shields.io/badge/Python-3.13-blue?logo=python&logoColor=white)
 ![AsyncIO](https://img.shields.io/badge/AsyncIO-Asynchronous-purple)
 ![Protocol](https://img.shields.io/badge/Protocol-UDP-orange)
-![Tests](https://img.shields.io/badge/Tests-50%20Passed-brightgreen)
-![Progress](https://img.shields.io/badge/Development-Day%2015-blue)
+![Tests](https://img.shields.io/badge/Tests-60%20Passed-brightgreen)
+![Progress](https://img.shields.io/badge/Development-Day%2016-blue)
 ![Status](https://img.shields.io/badge/Status-In%20Development-yellow)
 
 An asynchronous task execution broker designed to explore
@@ -131,6 +131,9 @@ flowchart TD
 | Graceful worker shutdown | Completed |
 | Remote cancellation protocol | Completed |
 | Client-side cancellation handling | Completed |
+| Task lifecycle management | Completed |
+| Task status retrieval | Completed |
+| Dedicated cancellation metrics | Completed |
 | Persistent task storage | Planned |
 | Multi-worker scheduling | Planned |
 
@@ -152,7 +155,8 @@ MeshWeaver/
 │   ├── broker.py
 │   ├── demo.py
 │   ├── logging_config.py
-│   └── metrics.py
+│   ├── metrics.py
+│   └── task_state.py
 │
 ├── tests/
 │   ├── __init__.py
@@ -163,7 +167,8 @@ MeshWeaver/
 │   ├── test_deduplication.py
 │   ├── test_queue.py
 │   ├── test_cancellation.py
-│   └── test_remote_cancellation.py
+│   ├── test_remote_cancellation.py
+│   └── test_task_state.py
 │
 ├── docs/
 │   ├── week1-progress.md
@@ -171,7 +176,8 @@ MeshWeaver/
 │   ├── nov22-progress.md
 │   ├── nov23-progress.md
 │   ├── nov24-progress.md
-│   └── nov25-progress.md
+│   ├── nov25-progress.md
+│   └── nov26-progress.md
 │
 ├── .gitignore
 ├── requirements.txt
@@ -676,7 +682,7 @@ November 18 broker prototype.
 ---
 
 
-<details open>
+<details>
 <summary><b>Day 15 - Remote Task Cancellation & Client-Side Cancellation Handling</b></summary>
 
 ### Date: 25 November 2026
@@ -730,6 +736,98 @@ November 18 broker prototype.
 
 ---
 
+
+<details open>
+<summary><b>Day 16 - Task Lifecycle Management and Dedicated Cancellation Metrics</b></summary>
+
+### Date: 26 November 2026
+
+#### Tasks Completed
+
+- Implemented TaskState enumeration.
+- Implemented TaskRegistry lifecycle management.
+- Added valid task state transitions.
+- Added UTC lifecycle timestamps.
+- Implemented bounded task history.
+- Added worker task status retrieval.
+- Added task state distribution reporting.
+- Separated cancelled tasks from failed tasks.
+- Added cancellation request statistics.
+- Verified unauthorized cancellation rejection.
+- Verified simulated cancellation ACK loss recovery.
+- Added 10 automated tests.
+- Updated the live demonstration.
+
+#### Task Lifecycle
+
+SUBMITTED -> QUEUED -> RUNNING
+
+Terminal states:
+
+- COMPLETED
+- FAILED
+- CANCELLED
+
+Queued tasks can also be cancelled before execution.
+
+#### Files Created
+
+- meshweaver/task_state.py
+- tests/test_task_state.py
+- docs/nov26-progress.md
+
+#### Files Updated
+
+- meshweaver/broker.py
+- meshweaver/metrics.py
+- meshweaver/demo.py
+
+#### Automated Test Results
+
+| Parameter | Result |
+|---|---|
+| Existing tests | 50 passed |
+| New tests | 10 passed |
+| Total tests | 60 passed |
+| Execution time | 7.393 seconds |
+| Test failures | 0 |
+| Pass rate | 100% |
+
+#### Live Demo Results
+
+| Metric | Result |
+|---|---|
+| Submitted tasks | 6 |
+| Successful tasks | 4 |
+| Failed tasks | 1 |
+| Cancelled tasks | 1 |
+| Pending tasks | 0 |
+| Retries | 2 |
+| Timeouts | 2 |
+| Average duration | 0.060543 seconds |
+| Success rate | 66.67% |
+| Cancellation rate | 16.67% |
+| Cancellation requests | 1 |
+| Cancellation accepted | 1 |
+| Remaining worker tasks | 0 |
+
+#### Current Limitations
+
+- Task history is stored in memory.
+- Terminal history is limited to 256 records.
+- Status retrieval uses the local Worker API.
+- ACK packet loss testing is simulated.
+- Cancellation logging requires refinement.
+- Trusted localhost prototype only.
+
+**Implementation Commit:** b164346
+
+**Status:** Completed
+
+</details>
+
+---
+
 ## 📊 Automated Testing Progress
 
 | Date | Testing Module | New Tests | Total Passed |
@@ -742,19 +840,20 @@ November 18 broker prototype.
 | Nov 23 | Queue Management | 6 | 31 |
 | Nov 24 | Cancellation and Shutdown | 9 | 40 |
 | Nov 25 | Remote Cancellation | 10 | 50 |
+| Nov 26 | Task Lifecycle and Metrics | 10 | 60 |
 
 ```mermaid
 xychart-beta
     title "Automated Testing Growth"
-    x-axis ["Nov 18", "Nov 19", "Nov 20", "Nov 21", "Nov 22", "Nov 23", "Nov 24", "Nov 25"]
-    y-axis "Passed Tests" 0 --> 50
-    bar [4, 8, 11, 20, 25, 31, 40, 50]
+    x-axis ["Nov 18", "Nov 19", "Nov 20", "Nov 21", "Nov 22", "Nov 23", "Nov 24", "Nov 25", "Nov 26"]
+    y-axis "Passed Tests" 0 --> 60
+    bar [4, 8, 11, 20, 25, 31, 40, 50, 60]
 ```
 
 ### Latest Test Execution
 
 ```text
-Ran 50 tests in 5.731s
+Ran 60 tests in 7.393s
 
 OK
 ```
@@ -769,7 +868,8 @@ OK
 | Queue Management | 6 | Passed |
 | Cancellation | 9 | Passed |
 | Remote Cancellation | 10 | Passed |
-| **Total** | **50** | **Passed** |
+| Task Lifecycle and Cancellation Metrics | 10 | Passed |
+| **Total** | **60** | **Passed** |
 
 ---
 
@@ -791,6 +891,10 @@ OK
 - [x] Graceful worker shutdown
 - [x] Remote cancellation protocol
 - [x] Client-side cancellation handling
+- [x] Task lifecycle management
+- [x] Task status retrieval
+- [x] Dedicated cancellation metrics
+- [x] Simulated cancellation ACK loss testing
 - [ ] Shutdown timeout management
 - [ ] Persistent task storage
 - [ ] Multi-worker task scheduling
@@ -827,6 +931,7 @@ OK
 - [November 23 Progress](docs/nov23-progress.md)
 - [November 24 Progress](docs/nov24-progress.md)
 - [November 25 Progress](docs/nov25-progress.md)
+- [November 26 Progress](docs/nov26-progress.md)
 
 ---
 
@@ -840,8 +945,8 @@ OK
 | Project | MeshWeaver |
 | Domain | Distributed Systems & Edge Computing |
 | Development Branch | Ameesha |
-| Latest Development Day | Day 15 |
-| Automated Tests Passed | 50 |
+| Latest Development Day | Day 16 |
+| Automated Tests Passed | 60 |
 
 ### Contributions
 
@@ -868,6 +973,6 @@ Python Development Internship.
 
 **Project Status: Active Development**
 
-**Last Updated: 25 November 2026**
+**Last Updated: 26 November 2026**
 
 </div>
