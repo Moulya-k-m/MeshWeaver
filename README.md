@@ -10,8 +10,8 @@
 ![Python](https://img.shields.io/badge/Python-3.13-blue?logo=python&logoColor=white)
 ![AsyncIO](https://img.shields.io/badge/AsyncIO-Asynchronous-purple)
 ![Protocol](https://img.shields.io/badge/Protocol-UDP-orange)
-![Tests](https://img.shields.io/badge/Tests-60%20Passed-brightgreen)
-![Progress](https://img.shields.io/badge/Development-Day%2016-blue)
+![Tests](https://img.shields.io/badge/Tests-70%20Passed-brightgreen)
+![Progress](https://img.shields.io/badge/Development-Day%2017-blue)
 ![Status](https://img.shields.io/badge/Status-In%20Development-yellow)
 
 An asynchronous task execution broker designed to explore
@@ -134,6 +134,9 @@ flowchart TD
 | Task lifecycle management | Completed |
 | Task status retrieval | Completed |
 | Dedicated cancellation metrics | Completed |
+| Remote status query | Completed |
+| Task owner validation | Completed |
+| Status query retries and timeouts | Completed |
 | Persistent task storage | Planned |
 | Multi-worker scheduling | Planned |
 
@@ -168,7 +171,8 @@ MeshWeaver/
 │   ├── test_queue.py
 │   ├── test_cancellation.py
 │   ├── test_remote_cancellation.py
-│   └── test_task_state.py
+│   ├── test_task_state.py
+│   └── test_status_query.py
 │
 ├── docs/
 │   ├── week1-progress.md
@@ -177,7 +181,8 @@ MeshWeaver/
 │   ├── nov23-progress.md
 │   ├── nov24-progress.md
 │   ├── nov25-progress.md
-│   └── nov26-progress.md
+│   ├── nov26-progress.md
+│   └── nov27-progress.md
 │
 ├── .gitignore
 ├── requirements.txt
@@ -737,7 +742,7 @@ November 18 broker prototype.
 ---
 
 
-<details open>
+<details>
 <summary><b>Day 16 - Task Lifecycle Management and Dedicated Cancellation Metrics</b></summary>
 
 ### Date: 26 November 2026
@@ -828,6 +833,108 @@ Queued tasks can also be cancelled before execution.
 
 ---
 
+
+<details open>
+<summary><b>Day 17 - Remote Task Status Query and Reliability Improvements</b></summary>
+
+### Date: 27 November 2026
+
+#### Tasks Completed
+
+- Implemented task owner tracking.
+- Implemented remote task status query protocol.
+- Added client-side query_task_status API.
+- Implemented request-response correlation.
+- Added task owner validation.
+- Implemented retry and timeout handling.
+- Added pending status query cleanup.
+- Improved cancellation logging.
+- Verified unauthorized status query rejection.
+- Verified simulated response packet loss recovery.
+- Added 10 automated tests.
+- Completed regression testing and live demonstration.
+
+#### Architecture
+
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant W as Worker
+    participant R as Task Registry
+    C->>W: Status query
+    W->>R: Retrieve task and owner
+    R-->>W: Task record
+    alt Valid owner
+        W-->>C: Task status
+    else Unknown or unauthorized
+        W-->>C: Status unavailable
+    end
+    Note over C,W: Retry on timeout
+```
+
+#### Files Created
+
+- tests/test_status_query.py
+- docs/nov27-progress.md
+
+#### Files Updated
+
+- meshweaver/task_state.py
+- meshweaver/broker.py
+- meshweaver/demo.py
+
+#### Automated Test Results
+
+| Test Scenario | Result |
+|---|---|
+| Queued task status | Passed |
+| Running task status | Passed |
+| Completed task status | Passed |
+| Failed task status | Passed |
+| Cancelled task status | Passed |
+| Unknown task status | Passed |
+| Unauthorized status query | Passed |
+| Invalid query parameters | Passed |
+| Timeout and cleanup | Passed |
+| Simulated response packet loss | Passed |
+
+#### Regression Summary
+
+| Metric | Result |
+|---|---|
+| Previous tests | 60 |
+| New tests | 10 |
+| Total passed | 70 |
+| Failed | 0 |
+| Pass rate | 100% |
+| Execution time | 12.960 seconds |
+
+#### Live Demo Results
+
+| Feature | Result |
+|---|---|
+| Concurrent task results | 25, 100, 625 |
+| Remote cancellation | Successful |
+| Remote task status | CANCELLED |
+| Unknown task status | None |
+| Pending status queries | 0 |
+| Remaining worker tasks | 0 |
+| Graceful shutdown | Successful |
+
+#### Limitations
+
+- Trusted localhost UDP environment only.
+- Address-based validation is not cryptographic authentication.
+- Task history remains in memory.
+- Packet loss testing is simulated.
+- Multi-worker operation is not yet verified.
+
+**Status:** Completed
+
+</details>
+
+---
+
 ## 📊 Automated Testing Progress
 
 | Date | Testing Module | New Tests | Total Passed |
@@ -841,19 +948,20 @@ Queued tasks can also be cancelled before execution.
 | Nov 24 | Cancellation and Shutdown | 9 | 40 |
 | Nov 25 | Remote Cancellation | 10 | 50 |
 | Nov 26 | Task Lifecycle and Metrics | 10 | 60 |
+| Nov 27 | Remote Status Query | 10 | 70 |
 
 ```mermaid
 xychart-beta
     title "Automated Testing Growth"
-    x-axis ["Nov 18", "Nov 19", "Nov 20", "Nov 21", "Nov 22", "Nov 23", "Nov 24", "Nov 25", "Nov 26"]
-    y-axis "Passed Tests" 0 --> 60
-    bar [4, 8, 11, 20, 25, 31, 40, 50, 60]
+    x-axis ["Nov 18", "Nov 19", "Nov 20", "Nov 21", "Nov 22", "Nov 23", "Nov 24", "Nov 25", "Nov 26", "Nov 27"]
+    y-axis "Passed Tests" 0 --> 70
+    bar [4, 8, 11, 20, 25, 31, 40, 50, 60, 70]
 ```
 
 ### Latest Test Execution
 
 ```text
-Ran 60 tests in 7.393s
+Ran 70 tests in 12.960s
 
 OK
 ```
@@ -869,7 +977,8 @@ OK
 | Cancellation | 9 | Passed |
 | Remote Cancellation | 10 | Passed |
 | Task Lifecycle and Cancellation Metrics | 10 | Passed |
-| **Total** | **60** | **Passed** |
+| Remote Status Query | 10 | Passed |
+| **Total** | **70** | **Passed** |
 
 ---
 
@@ -895,6 +1004,10 @@ OK
 - [x] Task status retrieval
 - [x] Dedicated cancellation metrics
 - [x] Simulated cancellation ACK loss testing
+- [x] Remote task status query
+- [x] Task owner validation
+- [x] Status query retry and timeout handling
+- [x] Cancellation logging improvement
 - [ ] Shutdown timeout management
 - [ ] Persistent task storage
 - [ ] Multi-worker task scheduling
@@ -932,6 +1045,7 @@ OK
 - [November 24 Progress](docs/nov24-progress.md)
 - [November 25 Progress](docs/nov25-progress.md)
 - [November 26 Progress](docs/nov26-progress.md)
+- [November 27 Progress](docs/nov27-progress.md)
 
 ---
 
@@ -945,8 +1059,8 @@ OK
 | Project | MeshWeaver |
 | Domain | Distributed Systems & Edge Computing |
 | Development Branch | Ameesha |
-| Latest Development Day | Day 16 |
-| Automated Tests Passed | 60 |
+| Latest Development Day | Day 17 |
+| Automated Tests Passed | 70 |
 
 ### Contributions
 
@@ -973,6 +1087,6 @@ Python Development Internship.
 
 **Project Status: Active Development**
 
-**Last Updated: 26 November 2026**
+**Last Updated: 27 November 2026**
 
 </div>

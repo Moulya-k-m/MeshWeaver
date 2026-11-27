@@ -136,7 +136,29 @@ async def main():
         print("Cancelled tasks:", worker.cancelled_count)
         print("Active tasks:", len(worker.in_flight))
 
-        print("\n7. Graceful Worker Shutdown")
+        print("\n7. Remote Task Status Query")
+
+        status = await client.query_task_status(
+            task_id
+        )
+
+        print("Remote task status:")
+
+        if status is not None:
+            for key, value in status.items():
+                print(f"{key}: {value}")
+
+        unknown = await client.query_task_status(
+            "unknown-task"
+        )
+
+        print("Unknown task status:", unknown)
+        print(
+            "Pending status queries:",
+            len(client.status_pending),
+        )
+
+        print("\n8. Graceful Worker Shutdown")
 
         await worker.shutdown()
 
@@ -144,7 +166,7 @@ async def main():
         print("Remaining tasks:", len(worker.tasks))
 
 
-        print("\n8. Task Lifecycle Summary")
+        print("\n9. Task Lifecycle Summary")
 
         record = worker.get_task_status(task_id)
 
@@ -156,7 +178,7 @@ async def main():
         for state, count in worker.get_task_state_counts().items():
             print(f"{state}: {count}")
 
-        print("\n9. Dedicated Cancellation Metrics")
+        print("\n10. Dedicated Cancellation Metrics")
 
         metrics = client.get_metrics()
 

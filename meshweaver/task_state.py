@@ -1,4 +1,4 @@
-﻿"""Task lifecycle tracking for MeshWeaver."""
+"""Task lifecycle tracking for MeshWeaver."""
 
 from collections import OrderedDict
 from datetime import datetime, timezone
@@ -43,16 +43,18 @@ class TaskRegistry:
         self.max_history = max_history
         self.active = {}
         self.history = OrderedDict()
+        self.owners = {}
 
     @staticmethod
     def now():
         return datetime.now(timezone.utc).isoformat()
 
-    def create(self, task_id):
+    def create(self, task_id, owner=None):
         if task_id in self.active:
             raise ValueError("Task already exists")
 
         self.history.pop(task_id, None)
+        self.owners[task_id] = owner
 
         timestamp = self.now()
 
@@ -93,7 +95,8 @@ class TaskRegistry:
             self.history[task_id] = self.active.pop(task_id)
 
             while len(self.history) > self.max_history:
-                self.history.popitem(last=False)
+                expired_id, _ = self.history.popitem(last=False)
+                self.owners.pop(expired_id, None)
 
         return True
 
@@ -104,6 +107,10 @@ class TaskRegistry:
             record = self.history.get(task_id)
 
         return dict(record) if record is not None else None
+
+    def get_owner(self, task_id):
+        """Return the registered task owner."""
+        return self.owners.get(task_id)
 
     def snapshot(self):
         counts = {state.value: 0 for state in TaskState}

@@ -81,6 +81,23 @@ class Worker(asyncio.DatagramProtocol):
         try:
             msg = decode(data)
 
+            if msg.get("type") == "status_query":
+                task_id = msg.get("id")
+                request_id = msg.get("request_id")
+
+                if (
+                    not isinstance(task_id, str)
+                    or not 0 < len(task_id) <= 64
+                    or not isinstance(request_id, str)
+                    or not 0 < len(request_id) <= 64
+                ):
+                    raise ValueError("Invalid status query")
+
+                self._handle_status_query(
+                    task_id, request_id, addr
+                )
+                return
+
             if msg.get("type") == "cancel":
                 task_id = msg.get("id")
                 request_id = msg.get("request_id")
@@ -194,7 +211,7 @@ class Worker(asyncio.DatagramProtocol):
                 addr,
             )
 
-            self.registry.create(task_id)
+            self.registry.create(task_id, owner=addr)
             self.registry.transition(task_id, TaskState.QUEUED)
             self.waiting.append(task_id)
             task = asyncio.create_task(
@@ -370,6 +387,37 @@ class Worker(asyncio.DatagramProtocol):
 
         logger.info("Worker shutdown completed")
 
+    def _handle_status_query(
+        self, task_id, request_id, addr
+    ):
+        """Return task status only to the registered owner."""
+
+        record = self.registry.get(task_id)
+        owner = self.registry.get_owner(task_id)
+
+        allowed = record is not None and owner == addr
+
+        response = {
+            "type": "status_response",
+            "id": task_id,
+            "request_id": request_id,
+            "ok": allowed,
+        }
+
+        if allowed:
+            response["status"] = record
+        else:
+            response["error"] = "Task status unavailable"
+
+        self.transport.sendto(
+            encode(response), addr
+        )
+
+        logger.info(
+            "Status query processed | task_id=%s | success=%s",
+            task_id, allowed,
+        )
+
     def get_task_status(self, task_id):
         """Return a copy of the worker task record."""
         return self.registry.get(task_id)
@@ -505,6 +553,7 @@ class Client(asyncio.DatagramProtocol):
         self.pending = {}
         self.health_pending = {}
         self.cancel_pending = {}
+        self.status_pending = {}
 
         # Task execution metrics
         self.metrics = TaskMetrics()
@@ -521,6 +570,42 @@ class Client(asyncio.DatagramProtocol):
             msg = decode(data)
             msg_type = msg.get("type")
             msg_id = msg.get("id")
+
+            if msg_type == "status_response":
+                request_id = msg.get("request_id")
+
+                if not isinstance(request_id, str):
+                    return
+
+                entry = self.status_pending.get(request_id)
+
+                if entry is not None:
+                    task_id, future = entry
+                    ok = msg.get("ok")
+                    record = msg.get("status")
+
+                    valid = (
+                        isinstance(ok, bool)
+                        and (
+                            not ok
+                            or (
+                                isinstance(record, dict)
+                                and record.get("task_id") == task_id
+                                and record.get("state") in {
+                                    state.value for state in TaskState
+                                }
+                            )
+                        )
+                    )
+
+                    if (
+                        msg_id == task_id
+                        and valid
+                        and not future.done()
+                    ):
+                        future.set_result(msg)
+
+                return
 
             if msg_type == "cancel_ack":
                 request_id = msg.get("request_id")
@@ -627,6 +712,66 @@ class Client(asyncio.DatagramProtocol):
 
         finally:
             self.cancel_pending.pop(request_id, None)
+
+            if not future.done():
+                future.cancel()
+
+    async def query_task_status(
+        self, task_id, timeout=1.0, retries=2
+    ):
+        """Retrieve a task record through the UDP protocol."""
+
+        if not isinstance(task_id, str) or not 0 < len(task_id) <= 64:
+            raise ValueError("Invalid task id")
+
+        if timeout <= 0:
+            raise ValueError("timeout must be positive")
+
+        if not isinstance(retries, int) or retries < 0:
+            raise ValueError("Invalid retry count")
+
+        request_id = uuid.uuid4().hex
+        loop = asyncio.get_running_loop()
+        future = loop.create_future()
+
+        packet = encode({
+            "type": "status_query",
+            "id": task_id,
+            "request_id": request_id,
+        })
+
+        self.status_pending[request_id] = (
+            task_id, future
+        )
+
+        try:
+            for attempt in range(retries + 1):
+                self.transport.sendto(packet)
+
+                try:
+                    response = await asyncio.wait_for(
+                        asyncio.shield(future),
+                        timeout,
+                    )
+
+                    if response["ok"]:
+                        return response["status"]
+
+                    return None
+
+                except asyncio.TimeoutError:
+                    if attempt == retries:
+                        raise TimeoutError(
+                            "Task status query timed out"
+                        ) from None
+
+                    logger.warning(
+                        "Retrying status query | task_id=%s",
+                        task_id,
+                    )
+
+        finally:
+            self.status_pending.pop(request_id, None)
 
             if not future.done():
                 future.cancel()
@@ -772,10 +917,16 @@ class Client(asyncio.DatagramProtocol):
 
                 if not response.get("ok"):
                     remotely_cancelled = response.get("cancelled") is True
-                    logger.error(
-                        "Remote task failed | task_id=%s",
-                        task_id,
-                    )
+                    if remotely_cancelled:
+                        logger.info(
+                            "Remote task cancelled | task_id=%s",
+                            task_id,
+                        )
+                    else:
+                        logger.error(
+                            "Remote task failed | task_id=%s",
+                            task_id,
+                        )
 
                     raise RuntimeError(
                         response.get(
