@@ -10,7 +10,7 @@
 ![Python](https://img.shields.io/badge/Python-3.13-blue?logo=python&logoColor=white)
 ![AsyncIO](https://img.shields.io/badge/AsyncIO-Asynchronous-purple)
 ![Protocol](https://img.shields.io/badge/Protocol-UDP-orange)
-![Tests](https://img.shields.io/badge/Tests-70%20Passed-brightgreen)
+![Tests](https://img.shields.io/badge/Tests-70_Passed-brightgreen)
 ![Progress](https://img.shields.io/badge/Development-Day%2017-blue)
 ![Status](https://img.shields.io/badge/Status-In%20Development-yellow)
 
