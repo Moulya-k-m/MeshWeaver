@@ -1,33 +1,49 @@
+ <div align="center">
+
 # 🕸️ MeshWeaver
+
 ### Zero-Dependency P2P Async Task Broker
 
-**Domain:** Distributed Systems & Edge Computing
+**Distributed Systems & Edge Computing**
 
-MeshWeaver is a decentralized, peer-to-peer asynchronous task broker built using Python. It aims to distribute tasks across multiple nodes without depending on centralized message brokers such as Redis or RabbitMQ.
+![Python](https://img.shields.io/badge/Python-3.14-blue?logo=python&logoColor=white)
+![AsyncIO](https://img.shields.io/badge/AsyncIO-Asynchronous-purple)
+![Networking](https://img.shields.io/badge/Networking-UDP%20%7C%20TCP-orange)
+![Architecture](https://img.shields.io/badge/Architecture-P2P-blueviolet)
+![Progress](https://img.shields.io/badge/Development-Day%2019-blue)
+![Status](https://img.shields.io/badge/Status-In%20Development-yellow)
 
-The project explores peer discovery, asynchronous communication, distributed resource monitoring, load-aware task scheduling, remote task execution, routing reliability, execution tracking, task analytics, node reliability monitoring and fault handling.
+A decentralized peer-to-peer asynchronous task broker exploring distributed communication, peer discovery, resource monitoring, load-aware scheduling, routing reliability and execution analytics.
+
+</div>
 
 ---
 
 ## 📌 Project Overview
 
-Traditional task brokers often depend on centralized infrastructure to manage task distribution and communication. MeshWeaver explores an alternative approach in which independent nodes communicate directly and coordinate task processing.
+MeshWeaver is a decentralized peer-to-peer asynchronous task broker developed using Python. It aims to distribute tasks across multiple nodes without depending on centralized message brokers such as Redis or RabbitMQ.
 
-Each node can participate in peer discovery, exchange resource information, evaluate peer availability and contribute to distributed task execution.
+The project explores asynchronous UDP/TCP communication, peer discovery, resource gossip, distributed scheduling, task execution monitoring, node reliability and failure handling.
 
-### 🎯 Key Objectives
+It is being developed incrementally, with individual modules and automated tests for different distributed-system components.
 
-- Build a decentralized peer-to-peer task broker.
-- Enable asynchronous communication between nodes.
-- Discover peers without relying entirely on a centralized registry.
-- Exchange resource information between nodes.
-- Support distributed task scheduling and execution.
-- Monitor peer availability and handle node failures.
-- Improve routing reliability through fallback mechanisms.
-- Track task execution states and maintain persistent execution history.
-- Analyse task performance and node-wise execution statistics.
-- Monitor node reliability using historical execution outcomes.
-- Minimize external dependencies using Python's asynchronous networking capabilities.
+> **Note:** MeshWeaver is an ongoing development project. Some components currently operate as independently tested modules and are not yet integrated into the complete live node runtime.
+
+---
+
+## 🎯 Project Objectives
+
+- Establish communication between independent nodes.
+- Implement asynchronous UDP and TCP networking.
+- Develop peer discovery and routing mechanisms.
+- Exchange CPU, RAM and active-task information.
+- Implement resource-aware task scheduling.
+- Monitor peer availability and resource-report freshness.
+- Handle forwarding failures and local execution fallback.
+- Track task execution and maintain persistent history.
+- Analyse task performance and node reliability.
+- Develop reliability-aware scheduling decisions.
+- Validate components through automated and multi-node testing.
 
 ---
 
@@ -35,758 +51,83 @@ Each node can participate in peer discovery, exchange resource information, eval
 
 | Technology | Purpose |
 |---|---|
-| Python | Core implementation |
-| Asyncio | Asynchronous communication and task management |
-| UDP | Peer discovery and announcements |
-| TCP | Reliable communication and message exchange |
-| JSON | Structured message exchange |
-| Cloudpickle | Python object and function serialization |
+| Python | Core programming language |
+| asyncio | Asynchronous communication |
+| UDP | Peer communication and discovery |
+| TCP | Reliable message exchange |
+| JSON | Structured message encoding |
+| cloudpickle | Python object serialization |
 | HMAC-SHA256 | Message authentication |
 | SHA-1 | Node identifier generation |
-| Pytest | Unit and integration testing |
-| Git & GitHub | Version control and collaboration |
+| JSONL | Execution and routing history |
+| pytest | Automated testing |
+| Git | Version control |
+| GitHub | Repository collaboration |
 
 ---
 
-# 📅 Development Progress
-
-### Week 1 – Communication and Core Foundations
-
-| Day | Focus | Status |
-|---|---|---|
-| Day 1 | UDP communication – listener, sender and PING/PONG | Completed |
-| Day 2 | TCP communication and message framing | Completed |
-| Day 3 | Continued core communication development | Completed |
-| Day 4 | Core node and communication development | Completed |
-| Day 5 | Node integration and resource monitoring foundations | Completed |
-| Day 6 | Continued system integration and development | Completed |
-| Day 7 | Week 1 development and documentation | Completed |
-
-### Week 2 – Peer Discovery and Distributed Coordination
-
-| Day | Focus | Status |
-|---|---|---|
-| Day 8 | Node identity and peer information | Completed |
-| Day 9 | Peer representation and routing table | Completed |
-| Day 10 | Bootstrap server and peer discovery | Completed |
-| Day 11 | Lookup manager and FIND_NODE functionality | Completed |
-| Days 12–13 | Resource gossip and asynchronous resource exchange | Completed |
-| Day 14 | Cluster integration, reliability and failure recovery testing | Completed |
-
-### Week 3 – Routing Reliability and Distributed Execution
-
-| Day | Focus | Status |
-|---|---|---|
-| Day 15 | Routing reliability and decision logging | Completed |
-| Day 16 | Distributed execution tracking and persistent history | Completed |
-| Day 17 | Task execution analytics and performance monitoring | Completed |
-| Day 18 | Node reliability monitoring and health classification | Completed |
-| Day 19 | Multi-node load balancing and stress testing | Upcoming |
-| Day 20 | Integration, regression testing and documentation | Upcoming |
-
----
-
-# 🚀 Week 1 – Communication and Core Foundations
-
-## Day 1 – UDP Communication
-
-Implemented the initial communication mechanism between independent MeshWeaver nodes using UDP.
-
-### Features Implemented
-
-- UDP listener and sender.
-- PING/PONG message exchange.
-- JSON-based message format.
-- Unique node identifier generation using UUID and SHA-1.
-- Configurable message count and timeout.
-- Round-trip time measurement.
-- Minimum, average and maximum RTT statistics.
-- Dropped malformed packet handling.
-
-### Outcome
-
-Established the initial communication foundation required for peer-to-peer networking.
-
-## Day 2 – TCP Communication and Message Framing
-
-Implemented reliable TCP communication with message framing between client and server.
-
-### Features Implemented
-
-- TCP client and server.
-- Four-byte big-endian message length prefix.
-- Message size validation with a 1 MB maximum.
-- Structured JSON message exchange.
-- HELLO and HELLO_ACK communication.
-- ADD operation for arithmetic requests.
-- TIME operation for UTC timestamp responses.
-- Unknown operation handling.
-
-### Outcome
-
-Established structured TCP communication and message framing to support reliable data exchange between nodes.
-
-## Days 3–4 – Core Development
-
-Continued development of the foundational networking and node components.
-
-### Development Focus
-
-- Organizing communication components.
-- Developing reusable node functionality.
-- Preparing the system for asynchronous coordination.
-- Building foundations for distributed communication.
-
-## Day 5 – Node Integration and Resource Monitoring
-
-Progressed towards integrating individual components into the MeshWeaver node architecture.
-
-### Development Focus
-
-- Node initialization and communication.
-- Peer table management.
-- Resource monitoring.
-- Scheduler integration.
-- Task storage and processing foundations.
-- Resource gossip implementation and supporting tests.
-
-The `day5_wk1` directory contains several components that were subsequently extended and tested during later development.
-
-### Outcome
-
-Established important foundations for integrating resource monitoring, peer management and task coordination.
-
-## Days 6–7 – Continued Core Development
-
-Continued developing and organizing the core MeshWeaver components.
-
-The work progressed towards a more integrated architecture, preparing the project for distributed peer discovery, serialization and routing functionality introduced in subsequent development.
-
----
-
-# 🌐 Week 2 – Peer Discovery and Distributed Coordination
-
-## Day 8 – Node Identity and Peer Information
-
-Introduced the foundation for identifying nodes and maintaining peer information.
-
-### Development Focus
-
-- Node identity.
-- Peer information representation.
-- Node-related metadata.
-- Foundations for distributed peer management.
-
-## Day 9 – Peer Representation and Routing Table
-
-Implemented peer representation and routing table foundations.
-
-### Features
-
-- Peer data representation.
-- Routing table implementation.
-- Peer information management.
-- Support for organizing discovered nodes.
-- Foundations for Kademlia-style peer routing.
-
-### Outcome
-
-Established the routing structures required for decentralized peer discovery.
-
-## Day 10 – Bootstrap Server and Peer Discovery
-
-Implemented bootstrap-based peer discovery to help nodes identify and connect with other available nodes.
-
-### Features
-
-- Bootstrap server.
-- Peer discovery mechanism.
-- Node registration and peer information exchange.
-- TCP-based communication with the bootstrap server.
-- Peer discovery management.
-
-### Outcome
-
-Enabled nodes to obtain peer information through the bootstrap mechanism.
-
-## Day 11 – Lookup Manager and FIND_NODE
-
-Extended peer discovery functionality with lookup management and node lookup operations.
-
-### Features
-
-- Lookup manager.
-- FIND_NODE functionality.
-- Peer lookup operations.
-- Routing table interaction.
-- Discovery-related testing.
-
-### Outcome
-
-Established the foundation for locating nodes through distributed peer discovery and routing components.
-
-## Days 12–13 – Resource Gossip and Asynchronous Exchange
-
-Focused on exchanging resource information between available MeshWeaver nodes.
-
-The existing resource gossip implementation was extended and tested under `day5_wk1`.
-
-### Features
-
-- Resource report generation.
-- CPU utilization monitoring.
-- RAM utilization monitoring.
-- Active task count reporting.
-- Timestamp-based report validation.
-- Stale report rejection.
-- Resource information exchange between peers.
-- Scheduler load report updates.
-- Peer resource state management.
-- Asynchronous gossip loop.
-- Removal of outdated peer resource information.
-
-### Resource Report Validation
-
-Incoming resource reports are checked for:
-
-- Required report fields.
-- Valid resource values.
-- Valid timestamps.
-- Stale report age.
-- Invalid or outdated information.
-
-### Outcome
-
-Enabled nodes to exchange resource information and maintain updated peer load information for distributed scheduling.
-
----
-
-## Day 14 – Cluster Integration and Reliability
-
-Day 14 focused on validating the interaction between peer discovery, resource gossip, scheduler updates and peer failure handling.
-
-The objective was to move beyond testing individual components and verify their behavior in a real multi-node environment.
-
-### 🎯 Objectives
-
-- Coordinate peer discovery with resource gossip.
-- Register discovered peers in the peer table.
-- Exchange authenticated resource reports.
-- Update scheduler load information.
-- Detect unavailable peers.
-- Remove stale resource information.
-- Validate the system using a real three-node environment.
-
-### 1. Discovery and Gossip Integration
-
-Created an integration coordinator to connect the peer discovery component with resource gossip.
-
-Implemented functionality for:
-
-- Discovering and registering peers.
-- Refreshing peer information.
-- Excluding the bootstrap server from regular gossip communication.
-- Starting and stopping the gossip process.
-- Coordinating peer information with resource gossip.
-
-### 2. Resource Exchange Validation
-
-Validated resource exchange through the existing TCP communication mechanism.
-
-Nodes exchange authenticated resource reports containing CPU, RAM and active task information.
-
-### 3. Peer Failure Recovery
-
-Improved the existing node reaper mechanism.
-
-When a peer becomes DEAD:
-
-- Its resource state is removed.
-- Its last update timestamp is cleared.
-- Its scheduler load report is removed.
-- Outdated resource information is prevented from being reused.
-
-### 4. Real Three-Node Cluster Testing
-
-Created a real integration test using three independent MeshWeaver nodes.
-
-The test validates:
-
-1. Starting three nodes.
-2. Discovering peers through UDP announcements.
-3. Exchanging signed resource reports over TCP.
-4. Updating scheduler load reports.
-5. Stopping one node.
-6. Detecting the failed peer.
-7. Cleaning up its resource information.
-8. Gracefully shutting down the remaining nodes.
-
-### Day 14 Test Results
-
-| Functionality | Result |
-|---|---|
-| Three-node peer discovery | PASS |
-| Signed resource gossip exchange | PASS |
-| Scheduler load report updates | PASS |
-| Failed peer detection | PASS |
-| Dead-peer resource cleanup | PASS |
-
-### Regression Testing
-
-| Test Module | Passed |
-|---|---:|
-| Day 14 integration tests | 3 |
-| Day 12–13 resource gossip | 7 |
-| Day 10 discovery | 4 |
-| Day 11 lookup manager | 5 |
-| Day 11 FIND_NODE | 4 |
-| **Total** | **23** |
-
-**Final verified result: 23 passed in 10.90 seconds.**
-
-### Outcome
-
-Validated peer discovery, authenticated resource exchange, scheduler updates and peer failure handling through integration and regression testing.
-
----
-
-# 🧭 Week 3 – Routing Reliability and Distributed Execution
-
-## Day 15 – Routing Reliability and Decision Transparency
-
-Day 15 focused on improving routing reliability and making task scheduling decisions easier to understand and debug.
-
-The objective was to ensure that stale peer information is not used for routing and that tasks can still be processed locally when forwarding to another peer fails.
-
-### 🎯 Objectives
-
-- Validate peer load report freshness.
-- Prevent routing decisions based on stale resource information.
-- Handle failed task forwarding.
-- Provide local execution fallback.
-- Record routing decisions for debugging and monitoring.
-
-### 1. Stale Peer Load Report Handling
-
-Added and tested routing behavior that ignores outdated peer load reports.
-
-This prevents the scheduler from selecting peers based on old resource information.
-
-### 2. Failed Forwarding and Local Fallback
-
-Validated the behavior when a selected peer becomes unavailable during task forwarding.
-
-Implemented and tested the fallback behavior:
-
-- Attempt forwarding to the selected peer.
-- Handle forwarding failure.
-- Retain the task locally.
-- Return a successful task acceptance response.
-- Record the local execution decision.
-
-### 3. Routing Decision Logger
-
-Introduced `RoutingDecisionLogger` to maintain structured routing decision records in JSON Lines format.
-
-Each record contains:
-
-- Timestamp.
-- Task ID.
-- Node ID.
-- Routing decision.
-- Reason for the decision.
-- Local load score.
-- Selected peer ID.
-- Selected peer load score.
-
-The logger records decisions such as:
-
-- `FORWARDED` – Task successfully forwarded to another peer.
-- `LOCAL` – Task retained for local processing.
-
-### 4. Day 15 Testing
-
-| Test Case | Result |
-|---|---|
-| Scheduler ignores stale load reports | PASS |
-| Failed forwarding falls back to local queue | PASS |
-| Structured routing log generation | VERIFIED |
-
-### Latest Test Output
-
-```text
-pytest day15_wk3 -v
-
-collected 2 items
-
-test_failed_forwarding_falls_back_to_local_queue PASSED
-test_scheduler_ignores_stale_load_report PASSED
-
-2 passed in 0.13s
+## 🏗️ System Architecture
+
+The following diagram represents the intended high-level MeshWeaver workflow. Individual components are being developed and integrated incrementally.
+
+```mermaid
+flowchart TD
+    A[Peer Nodes] --> B[Peer Discovery]
+    B --> C[Peer Information and Routing]
+    C --> D[Resource Monitoring]
+    D --> E[Resource Gossip]
+    E --> F[Scheduler]
+    F --> G[Task Routing]
+    G --> H{Forwarding Successful?}
+    H -->|Yes| I[Remote Node]
+    H -->|No| J[Local Fallback]
+    I --> K[Task Execution]
+    J --> K
+    K --> L[Execution Tracking]
+    L --> M[Persistent History]
+    M --> N[Task Analytics]
+    M --> O[Node Reliability]
+    N --> P[Reliability-Aware Scheduling]
+    O --> P
+    P --> F
 ```
 
-The generated JSONL log was also inspected and verified to contain the local fallback decision, task identifier, reason and load information.
+---
 
-### Outcome
+## ✨ Implemented Features
 
-Improved routing transparency and reliability by adding structured decision logging, stale-report validation and local fallback behavior when peer forwarding fails.
+| Feature | Status |
+|---|---|
+| UDP communication | Completed |
+| TCP communication | Completed |
+| TCP message framing | Completed |
+| Node identity generation | Completed |
+| Peer information management | Completed |
+| Peer routing table | Completed |
+| Bootstrap-based peer discovery | Completed |
+| FIND_NODE lookup | Completed |
+| Resource monitoring | Completed |
+| CPU and RAM reporting | Completed |
+| Asynchronous resource gossip | Completed |
+| Stale resource-report validation | Completed |
+| Authenticated resource reports | Completed |
+| Scheduler load updates | Completed |
+| Dead-peer detection and cleanup | Completed |
+| Three-node integration testing | Completed |
+| Routing decision logging | Completed |
+| Failed-forwarding local fallback | Completed |
+| Task lifecycle tracking | Completed |
+| Persistent JSONL execution history | Completed |
+| Task execution analytics | Completed |
+| Node reliability monitoring | Completed |
+| Node health classification | Completed |
+| Reliability-aware node ranking | Completed |
+| Live integration of Day 19 scheduler | Planned |
+| Large-scale cluster stress testing | Planned |
 
 ---
 
-## Day 16 – Distributed Execution Tracking and Persistent History
-
-Day 16 focused on introducing a dedicated execution tracking mechanism to monitor the lifecycle of distributed tasks.
-
-The objective was to maintain task execution states, record important execution events and preserve task history across application restarts.
-
-### 🎯 Objectives
-
-- Track the lifecycle of individual tasks.
-- Generate unique task identifiers.
-- Record task submission, assignment, completion and failure.
-- Maintain persistent execution history.
-- Restore task states after restarting the application.
-- Validate task tracking and history recovery.
-
-### 1. Execution Tracker
-
-Implemented an `ExecutionTracker` class to maintain the latest state of each tracked task.
-
-Supported task states:
-
-- `SUBMITTED`
-- `ASSIGNED`
-- `COMPLETED`
-- `FAILED`
-
-### 2. Task Lifecycle Management
-
-Implemented methods for:
-
-- `submit()` – Generates a unique task ID and records submission.
-- `assign()` – Records the node assigned to a task.
-- `complete()` – Records successful task completion and its result.
-- `fail()` – Records task failure and the associated error.
-- `get_status()` – Retrieves the current task state.
-- `get_task()` – Retrieves task information.
-- `get_all_tasks()` – Returns tracked task states.
-
-### 3. Persistent Execution History
-
-Introduced JSONL-based execution history storage.
-
-Each event records:
-
-- Task ID.
-- Execution status.
-- Node information.
-- Task result.
-- Error information.
-- UTC timestamp.
-
-This allows task execution events to be stored independently of the application's in-memory state.
-
-### 4. History Restoration
-
-Implemented `load_history()` to restore task information from the persistent JSONL file.
-
-Features include:
-
-- Reading previously recorded execution events.
-- Reconstructing the latest state of each task.
-- Skipping corrupted JSON entries.
-- Preserving task history across application restarts.
-
-### 5. Task State Validation
-
-Added validation to prevent:
-
-- Operations on unknown task IDs.
-- Reassigning completed tasks.
-- Modifying tasks that have already reached a terminal state.
-
-### Day 16 Outcome
-
-Established a persistent task execution tracking foundation that records task lifecycle events and supports state restoration after application restarts.
-
----
-
-## Day 17 – Distributed Task Execution Analytics
-
-Day 17 focused on extending the execution tracking mechanism developed on Day 16 with a separate analytics module.
-
-The objective was to analyse persistent task execution history and generate useful insights into task completion, failure rates, node-level execution distribution and average execution time.
-
-### 🎯 Objectives
-
-- Analyse historical task execution events.
-- Calculate overall task execution statistics.
-- Identify completed, failed and pending tasks.
-- Calculate task execution success rates.
-- Generate node-wise execution statistics.
-- Calculate average task execution time.
-- Handle corrupted and missing execution history.
-- Provide a terminal-based analytics interface.
-
-### 1. Task Execution Analytics Module
-
-Developed a separate `TaskAnalytics` class to process execution history generated by the Day 16 Execution Tracker.
-
-The analytics module reads JSONL records independently without modifying the existing execution tracker.
-
-### 2. Execution History Loading
-
-Implemented `load_events()` to retrieve execution records from the persistent history file.
-
-Features include:
-
-- JSONL event loading.
-- Validation of essential event fields.
-- Handling missing history files.
-- Skipping malformed JSON entries.
-- Maintaining a separate collection of loaded execution events.
-
-### 3. Task Summary Analytics
-
-Implemented `get_summary()` to calculate overall execution statistics.
-
-The summary includes:
-
-- Total number of unique tasks.
-- Completed tasks.
-- Failed tasks.
-- Pending tasks.
-- Overall execution success rate.
-
-The success rate is calculated using completed and failed tasks:
-
-```text
-Success Rate = (Completed Tasks / Finished Tasks) × 100
-```
-
-Pending tasks are excluded from the success-rate calculation.
-
-### 4. Node-wise Execution Statistics
-
-Implemented `get_node_statistics()` to analyse task distribution across individual nodes.
-
-The module tracks:
-
-- Number of completed tasks per node.
-- Number of failed tasks per node.
-- Number of tasks remaining in other execution states.
-
-This provides visibility into the recorded task outcomes associated with individual nodes.
-
-### 5. Average Execution Time Analysis
-
-Implemented `get_average_execution_time()` to calculate the average time between task submission and its terminal execution event.
-
-The calculation considers:
-
-- Initial task submission timestamp.
-- Final completion or failure timestamp.
-- Multiple execution events belonging to the same task.
-- Both successful and failed task executions.
-
-Tasks without valid submission and terminal timestamps are excluded from the calculation.
-
-### 6. Terminal Analytics Runner
-
-Created `run_analytics.py` to display execution analytics directly in the terminal.
-
-The runner displays:
-
-- Total tasks.
-- Completed tasks.
-- Failed tasks.
-- Pending tasks.
-- Success rate.
-- Node-wise execution statistics.
-- Average execution time.
-
-It also handles empty or unavailable execution history without terminating unexpectedly.
-
-### 7. Automated Testing
-
-Created a dedicated pytest test suite covering the analytics implementation.
-
-| Test Case | Result |
-|---|---|
-| Execution event loading | PASS |
-| Task summary calculation | PASS |
-| Node-wise statistics | PASS |
-| Average execution time | PASS |
-| Empty history handling | PASS |
-| Corrupted history handling | PASS |
-| Missing history file handling | PASS |
-| Failed task execution-time calculation | PASS |
-
-**Final verified result: 8 passed in 0.17 seconds.**
-
-### Files Created
-
-| File | Description |
-|---|---|
-| `task_analytics.py` | Core task analytics implementation |
-| `test_task_analytics.py` | Automated analytics test suite |
-| `run_analytics.py` | Terminal-based analytics runner |
-
-### Outcome
-
-Successfully developed an independent task execution analytics module that extends MeshWeaver's monitoring capabilities.
-
-The implementation provides visibility into task completion, execution failures, node-wise task distribution and average execution time.
-
-It also establishes a foundation for future performance monitoring, workload analysis and distributed execution optimization.
-
----
-
-## Day 18 – Node Reliability Monitoring and Health Classification
-
-Day 18 focused on analysing node-wise task execution outcomes to evaluate the reliability and health of individual MeshWeaver nodes.
-
-The objective was to use historical execution records to identify reliable nodes, detect nodes with frequent failures and avoid making reliability judgements when insufficient task data is available.
-
-### 🎯 Objectives
-
-- Calculate node-wise task success and failure rates.
-- Analyse completed and failed tasks for individual nodes.
-- Measure average node execution time.
-- Classify node health based on reliability.
-- Identify nodes with insufficient execution data.
-- Rank nodes according to their reliability.
-- Handle missing and corrupted execution history.
-- Provide a terminal-based node reliability report.
-
-### 1. Node Reliability Module
-
-Developed a separate `NodeReliability` class to analyse execution history generated by the Day 16 Execution Tracker.
-
-The module processes JSONL execution records independently without modifying the existing tracker.
-
-### 2. Node Reliability Calculation
-
-Implemented `get_node_reliability()` to calculate the reliability statistics of individual nodes.
-
-The module tracks:
-
-- Total tasks handled by each node.
-- Successfully completed tasks.
-- Failed tasks.
-- Task success rate.
-- Task failure rate.
-
-### 3. Node Execution Time Analysis
-
-Implemented `get_node_execution_times()` to calculate average execution time for individual nodes.
-
-The calculation considers task submission timestamps and the final completion or failure event.
-
-### 4. Node Health Classification
-
-Implemented `get_node_health()` to classify nodes based on their success rates and minimum task requirements.
-
-Supported health classifications:
-
-| Health Status | Condition |
-|---|---|
-| HEALTHY | Success rate greater than or equal to 90% |
-| WARNING | Success rate greater than or equal to 70% but below 90% |
-| CRITICAL | Success rate below 70% |
-| INSUFFICIENT_DATA | Fewer than 5 recorded tasks |
-
-The minimum task requirement prevents a node from receiving a confident health classification based on very limited execution history.
-
-### 5. Node Performance Ranking
-
-Implemented `get_ranked_nodes()` to rank nodes based on:
-
-- Higher task success rate.
-- Total number of recorded tasks as a secondary ranking factor.
-
-This provides a simple comparison of node reliability using historical task outcomes.
-
-### 6. Demonstration History Generator
-
-Created `generate_demo_history.py` to generate an isolated sample execution history using the existing Day 16 Execution Tracker.
-
-The demonstration contains 16 tasks across four nodes:
-
-| Node | Completed | Failed | Success Rate |
-|---|---:|---:|---:|
-| node-A | 5 | 0 | 100% |
-| node-B | 4 | 1 | 80% |
-| node-C | 2 | 3 | 40% |
-| node-D | 1 | 0 | 100% |
-
-This sample data allows different health classifications to be tested without modifying the actual Day 16 execution history.
-
-### 7. Terminal Reliability Report
-
-Created `run_reliability.py` to display:
-
-- Number of execution events loaded.
-- Node-wise completed and failed tasks.
-- Success and failure rates.
-- Average node execution times.
-- Node health classifications.
-- Node performance rankings.
-
-The runner also supports a custom JSONL history-file path.
-
-### 8. Automated Testing
-
-Created a dedicated pytest test suite covering:
-
-| Test Case | Result |
-|---|---|
-| Execution event loading | PASS |
-| Node reliability calculation | PASS |
-| Node execution time calculation | PASS |
-| Node health classification | PASS |
-| Node performance ranking | PASS |
-| Missing history file handling | PASS |
-| Corrupted history handling | PASS |
-| Invalid minimum task requirement | PASS |
-
-**Final verified result: 8 passed in 0.30 seconds.**
-
-### 9. Demonstration Results
-
-Successfully generated and analysed 16 sample tasks, producing 48 execution events.
-
-Verified node health classifications:
-
-| Node | Success Rate | Health |
-|---|---:|---|
-| node-A | 100% | HEALTHY |
-| node-B | 80% | WARNING |
-| node-C | 40% | CRITICAL |
-| node-D | 100% | INSUFFICIENT_DATA |
-
-The results confirmed that the reliability monitor correctly distinguishes between healthy, warning and critical nodes while accounting for insufficient execution data.
-
-### Files Created
-
-| File | Description |
-|---|---|
-| `node_reliability.py` | Core node reliability calculations |
-| `test_node_reliability.py` | Automated reliability test suite |
-| `run_reliability.py` | Terminal-based reliability report |
-| `generate_demo_history.py` | Isolated demonstration history generator |
-
-### Day 18 Outcome
-
-Successfully developed a node reliability monitoring module that evaluates historical task outcomes, calculates node-wise reliability metrics, classifies node health and ranks nodes based on execution performance.
-
-The module extends MeshWeaver's monitoring capabilities beyond task-level analytics towards node-level reliability analysis.
-
-**Note:** Demonstration results use generated sample execution events. Integration with live distributed node execution remains future work.
-
----
-
-# 📁 Project Structure
+## 📂 Project Structure
 
 ```text
 MeshWeaver/
@@ -922,212 +263,586 @@ MeshWeaver/
 │   ├── generate_demo_history.py
 │   └── README.md
 │
+├── day19_wk3/
+│   ├── __init__.py
+│   ├── reliability_scheduler.py
+│   └── test_reliability_scheduler.py
+│
 ├── .gitignore
 ├── README.md
 └── requirements.txt
 ```
 
-Each development folder contains its respective implementation, tests and documentation where applicable.
-
-Days 12 and 13 extend the existing resource monitoring and gossip implementation in `day5_wk1`, with additional focused tests and separate documentation.
-
-Day 14 introduces discovery and gossip integration coordination, integration tests and real multi-node cluster testing in `day14_wk2`.
-
-Day 15 introduces routing reliability tests and structured routing decision logging in `day15_wk3`, with the logger integrated into the existing `day5_wk1/node.py` runtime.
-
-Day 16 introduces dedicated task lifecycle tracking and persistent execution history.
-
-Day 17 introduces independent task analytics based on the execution history generated by Day 16.
-
-Day 18 introduces independent node reliability analysis using historical execution outcomes.
-
 ---
 
-# 🧪 Running Tests
+## 🚀 Installation and Setup
 
-Install the project dependencies:
+### 1. Clone the repository
 
-```bash
+```powershell
+git clone https://github.com/Moulya-k-m/MeshWeaver.git
+cd MeshWeaver
+```
+
+### 2. Switch to the development branch
+
+```powershell
+git checkout Navya
+```
+
+### 3. Create a virtual environment
+
+```powershell
+py -m venv .venv
+```
+
+### 4. Activate the virtual environment
+
+```powershell
+.\.venv\Scripts\Activate.ps1
+```
+
+### 5. Install dependencies
+
+```powershell
 pip install -r requirements.txt
 ```
 
-Run the Day 14 tests:
+---
 
-```bash
+# 📅 Daily Development Progress
+
+## Week 1 — Communication and Core Foundations
+
+<details>
+<summary><strong>Day 1 — UDP Communication</strong></summary>
+
+**Tasks Completed**
+
+- Implemented UDP sender and listener.
+- Established PING/PONG communication.
+- Added JSON-based message exchange.
+- Generated unique node IDs using UUID and SHA-1.
+- Added configurable message count and timeout.
+- Implemented RTT measurements: minimum, average and maximum.
+- Added malformed packet handling.
+
+**Files:** `sender.py`, `listener.py`
+
+**Result:** Successfully established basic UDP communication between nodes.
+
+**Status:** Completed
+
+</details>
+
+<details>
+<summary><strong>Day 2 — TCP Communication and Message Framing</strong></summary>
+
+**Tasks Completed**
+
+- Implemented TCP client and server.
+- Developed four-byte big-endian message framing.
+- Added a maximum message size of 1 MB.
+- Implemented HELLO and HELLO_ACK messages.
+- Added ADD and TIME operations.
+- Implemented handling for unknown operations.
+
+**Files:** `framing.py`, `tcp_client.py`, `tcp_server.py`
+
+**Result:** Established reliable TCP communication with structured message framing.
+
+**Status:** Completed
+
+</details>
+
+<details>
+<summary><strong>Days 3–7 — Core Node Development</strong></summary>
+
+**Development Focus**
+
+- Peer discovery and peer table foundations.
+- Task queue and node communication.
+- Resource monitoring and resource gossip.
+- Scheduler and task storage.
+- Worker implementation.
+- Recovery and journal-related components.
+- Function serialization and remote execution foundations.
+- Automated tests for peer management, recovery, serialization and worker functionality.
+
+**Status:** Completed development foundations
+
+</details>
+
+## Week 2 — Peer Discovery and Resource Coordination
+
+<details>
+<summary><strong>Day 8 — Node Identity and Peer Information</strong></summary>
+
+**Tasks Completed**
+
+- Developed node identity management.
+- Implemented peer information representation.
+- Added node metadata handling.
+- Tested edge cases and serialization.
+
+**Files:** `node_identity.py`, `peer_info.py`
+
+**Status:** Completed
+
+</details>
+
+<details>
+<summary><strong>Day 9 — Peer Representation and Routing Table</strong></summary>
+
+**Tasks Completed**
+
+- Implemented peer representation.
+- Developed routing table foundations.
+- Added peer management and routing tests.
+- Introduced Kademlia-style routing concepts.
+
+**Files:** `peer.py`, `routing_table.py`
+
+**Status:** Completed
+
+</details>
+
+<details>
+<summary><strong>Day 10 — Bootstrap and Peer Discovery</strong></summary>
+
+**Tasks Completed**
+
+- Implemented bootstrap server.
+- Added peer registration.
+- Developed peer discovery.
+- Established TCP-based peer information exchange.
+- Added discovery tests.
+
+**Files:** `bootstrap.py`, `peer_discovery.py`
+
+**Status:** Completed
+
+</details>
+
+<details>
+<summary><strong>Day 11 — FIND_NODE and Lookup Manager</strong></summary>
+
+**Tasks Completed**
+
+- Implemented FIND_NODE functionality.
+- Developed lookup manager.
+- Added peer lookup operations.
+- Integrated lookup with routing information.
+- Added automated tests for lookup and discovery.
+
+**Files:** `find_node.py`, `lookup_manager.py`
+
+**Status:** Completed
+
+</details>
+
+<details>
+<summary><strong>Days 12–13 — Resource Gossip and Monitoring</strong></summary>
+
+**Tasks Completed**
+
+- Implemented CPU and RAM resource reporting.
+- Added active task count reporting.
+- Developed asynchronous resource exchange.
+- Added timestamp validation.
+- Rejected stale resource reports.
+- Updated scheduler load information.
+- Added resource cleanup for outdated peer information.
+- Validated incoming resource reports.
+
+**Files:** Resource gossip implementation under `day5_wk1`, with Day 12–13 documentation and tests.
+
+**Status:** Completed
+
+</details>
+
+<details>
+<summary><strong>Day 14 — Discovery and Gossip Integration</strong></summary>
+
+**Tasks Completed**
+
+- Developed discovery and gossip integration coordinator.
+- Integrated peer registration and resource exchange.
+- Added authenticated TCP resource reports.
+- Updated scheduler load information.
+- Implemented dead-peer cleanup.
+- Excluded bootstrap nodes from resource gossip.
+- Added three-node cluster integration testing.
+
+**Three-Node Cluster Validation**
+
+- Started three independent nodes.
+- Verified peer discovery.
+- Exchanged authenticated resource reports.
+- Updated scheduler resource information.
+- Stopped one node and detected its failure.
+- Removed stale peer resource information.
+- Gracefully shut down remaining nodes.
+
+**Test Results**
+
+| Test Suite | Passed |
+|---|---:|
+| Integration | 3 |
+| Resource Gossip | 7 |
+| Discovery | 4 |
+| Lookup Manager | 5 |
+| FIND_NODE | 4 |
+| **Total** | **23** |
+
+**Execution Result:** 23 passed in 10.90 seconds.
+
+**Status:** Completed
+
+</details>
+
+## Week 3 — Routing Reliability and Distributed Execution
+
+<details>
+<summary><strong>Day 15 — Routing Reliability and Decision Logging</strong></summary>
+
+**Tasks Completed**
+
+- Added stale resource-report validation.
+- Prevented routing using outdated peer information.
+- Implemented forwarding failure detection.
+- Added local fallback when forwarding fails.
+- Developed `RoutingDecisionLogger`.
+- Implemented structured JSONL routing logs.
+
+**Routing Log Information**
+
+- Timestamp and task ID.
+- Node ID.
+- Routing decision.
+- Decision reason.
+- Local load score.
+- Selected peer ID and peer score.
+
+**Supported Decisions**
+
+- `FORWARDED`
+- `LOCAL`
+
+**Files:** `routing_logger.py`, `test_routing_reliability.py`
+
+**Test Result:** 2 passed in 0.13 seconds.
+
+**Status:** Completed
+
+</details>
+
+<details>
+<summary><strong>Day 16 — Task Execution Tracking and Persistent History</strong></summary>
+
+**Tasks Completed**
+
+- Developed `ExecutionTracker`.
+- Implemented task lifecycle tracking.
+- Added SUBMITTED, ASSIGNED, COMPLETED and FAILED states.
+- Added task submission and assignment methods.
+- Implemented completion and failure recording.
+- Added task status retrieval.
+- Implemented JSONL-based persistent event storage.
+- Added history restoration using `load_history()`.
+- Added handling for corrupted history entries.
+- Implemented terminal-state validation.
+
+**Files:** `execution_tracker.py`, `test_execution_tracker.py`
+
+**Status:** Completed
+
+</details>
+
+<details>
+<summary><strong>Day 17 — Task Execution Analytics</strong></summary>
+
+**Tasks Completed**
+
+- Developed `TaskAnalytics`.
+- Implemented JSONL execution history loading.
+- Added overall task summaries.
+- Calculated completed, failed and pending task counts.
+- Calculated execution success rate.
+- Implemented node-wise execution statistics.
+- Added average task duration calculation.
+- Added handling for missing and corrupted history.
+- Developed a command-line analytics runner.
+
+**Files**
+
+- `task_analytics.py`
+- `test_task_analytics.py`
+- `run_analytics.py`
+
+**Test Result:** 8 passed in 0.17 seconds.
+
+**Status:** Completed
+
+</details>
+
+<details>
+<summary><strong>Day 18 — Node Reliability Monitoring</strong></summary>
+
+**Tasks Completed**
+
+- Developed `NodeReliability`.
+- Implemented node-wise completed and failed task statistics.
+- Calculated historical success rates.
+- Calculated average task duration.
+- Added node health classification.
+- Implemented reliability-based node ranking.
+- Added minimum task-history requirements.
+- Developed a reliability report runner.
+- Generated demonstration execution history.
+
+**Node Health Classification**
+
+| Health | Condition |
+|---|---|
+| HEALTHY | Success rate ≥ 90% |
+| WARNING | Success rate ≥ 70% and below 90% |
+| CRITICAL | Success rate below 70% |
+| INSUFFICIENT_DATA | Fewer than 5 tasks |
+
+**Demonstration Data**
+
+Generated 16 sample tasks and 48 execution events across four nodes.
+
+| Node | Completed | Failed | Success Rate | Health |
+|---|---:|---:|---:|---|
+| node-A | 5 | 0 | 100% | HEALTHY |
+| node-B | 4 | 1 | 80% | WARNING |
+| node-C | 2 | 3 | 40% | CRITICAL |
+| node-D | 1 | 0 | 100% | INSUFFICIENT_DATA |
+
+**Files**
+
+- `node_reliability.py`
+- `test_node_reliability.py`
+- `run_reliability.py`
+- `generate_demo_history.py`
+
+**Test Result:** 8 passed in 0.30 seconds.
+
+**Status:** Completed
+
+</details>
+
+<details>
+<summary><strong>Day 19 — Reliability-Aware Adaptive Scheduling</strong></summary>
+
+**Objective**
+
+Develop a scheduling decision engine that considers not only current node resources but also historical node reliability and execution performance.
+
+**Tasks Completed**
+
+- Developed `ReliabilityAwareScheduler`.
+- Combined historical reliability with current resource availability.
+- Added CPU availability scoring.
+- Added RAM availability scoring.
+- Added historical task-duration performance scoring.
+- Implemented weighted node ranking.
+- Excluded dead nodes.
+- Excluded nodes with stale resource reports.
+- Added neutral reliability scoring for nodes with insufficient history.
+- Added neutral performance scoring when history is unavailable.
+- Added validation for malformed resource values and invalid active task counts.
+- Implemented deterministic ranking and tie-breaking.
+- Added human-readable scheduling decision explanations.
+
+**Scoring Model**
+
+| Factor | Weight |
+|---|---:|
+| Historical reliability | 50% |
+| CPU availability | 25% |
+| RAM availability | 15% |
+| Execution performance | 10% |
+
+**Files Created**
+
+- `reliability_scheduler.py`
+- `test_reliability_scheduler.py`
+- `__init__.py`
+
+**Test Coverage**
+
+- Dead-node exclusion.
+- Stale-report exclusion.
+- Invalid CPU and RAM values.
+- Invalid reliability information.
+- New nodes with insufficient history.
+- Missing execution performance information.
+- Node ranking and selection.
+- Reliability-based selection.
+- Decision explanation generation.
+- Invalid active task counts.
+
+**Automated Test Result**
+
+```text
+13 passed in 0.06s
+```
+
+**Status:** Completed
+
+**Current Scope:** The module is an independently tested scheduling decision engine. Integration with the live PeerTable, existing Scheduler and Node runtime is still pending.
+
+</details>
+
+---
+
+## 📊 Automated Testing Summary
+
+| Module | Verified Tests |
+|---|---:|
+| Day 14 Integration | 3 passed |
+| Day 15 Routing Reliability | 2 passed |
+| Day 17 Task Analytics | 8 passed |
+| Day 18 Node Reliability | 8 passed |
+| Day 19 Reliability Scheduler | 13 passed |
+
+**Day 19 latest test execution:**
+
+```text
+13 passed in 0.06s
+```
+
+*The results above come from separate test executions. They are not a single combined regression run.*
+
+---
+
+## 🧪 Running Tests
+
+Install project dependencies:
+
+```powershell
+pip install -r requirements.txt
+```
+
+**Day 14 – Integration Tests**
+
+```powershell
 pytest day14_wk2 -v
 ```
 
-Run the real cluster integration test:
+**Day 14 – Real Cluster Test**
 
-```bash
+```powershell
 pytest day14_wk2/test_real_cluster.py -v -s
 ```
 
-Run the Day 15 routing reliability tests:
+**Week 2 – Combined Regression Tests**
 
-```bash
-pytest day15_wk3 -v
-```
-
-Run the Day 16 execution tracker tests:
-
-```bash
-pytest day16_wk3 -v
-```
-
-Run the Day 17 analytics tests:
-
-```bash
-pytest day17_wk3 -v
-```
-
-Run the Day 17 analytics runner:
-
-```bash
-python day17_wk3/run_analytics.py
-```
-
-Run the Day 18 node reliability tests:
-
-```bash
-pytest day18_wk3/test_node_reliability.py -v
-```
-
-Generate isolated Day 18 demonstration history:
-
-```bash
-python day18_wk3/generate_demo_history.py
-```
-
-Run the Day 18 reliability report:
-
-```bash
-python day18_wk3/run_reliability.py day18_wk3/demo_execution_history.jsonl
-```
-
-Run the combined Week 2 regression suite:
-
-```bash
+```powershell
 pytest day14_wk2 day5_wk1/test_resource_gossip_day12_13.py day10_wk2/test_discovery.py day11_wk2/test_lookup_manager.py day11_wk2/test_find_node.py -v
 ```
 
----
+**Day 15 – Routing Reliability**
 
-## Latest Verified Test Results
-
-| Test Suite | Verified Result |
-|---|---:|
-| Week 2 combined regression suite | 23 passed |
-| Day 14 integration tests | 3 passed |
-| Day 15 routing reliability tests | 2 passed |
-| Day 17 task analytics tests | 8 passed |
-| Day 18 node reliability tests | 8 passed |
-
-**Day 18 latest test execution:**
-
-```text
-8 passed in 0.30s
+```powershell
+pytest day15_wk3 -v
 ```
 
-**Day 18 demonstration execution:**
+**Day 16 – Execution Tracking**
 
-```text
-Execution events loaded: 48
-
-node-A: HEALTHY (100.0% success)
-node-B: WARNING (80.0% success)
-node-C: CRITICAL (40.0% success)
-node-D: INSUFFICIENT_DATA (100.0% success)
+```powershell
+pytest day16_wk3 -v
 ```
 
-*Note: These results represent separate verified test runs, not one combined execution. Day 16 test results should be added after its dedicated test execution.*
+**Day 17 – Task Analytics**
+
+```powershell
+pytest day17_wk3 -v
+python day17_wk3/run_analytics.py
+```
+
+**Day 18 – Node Reliability**
+
+```powershell
+pytest day18_wk3/test_node_reliability.py -v
+```
+
+**Day 19 – Reliability-Aware Scheduling**
+
+```powershell
+python -m pytest day19_wk3/test_reliability_scheduler.py -v
+```
 
 ---
 
-# 🏆 Achievements So Far
+## ⚠️ Current Limitations
 
-- Implemented UDP-based node communication.
-- Established TCP communication with message framing.
-- Developed foundational node and peer management components.
-- Implemented node identity and peer representation.
-- Developed routing table and lookup functionality.
-- Implemented bootstrap-based peer discovery.
-- Developed resource monitoring and gossip mechanisms.
-- Added authenticated resource report exchange.
-- Integrated scheduler load updates.
-- Improved dead-peer resource cleanup.
-- Validated communication using a real three-node cluster.
-- Implemented remote function serialization and execution foundations.
-- Audited discovery and authenticated TCP connectivity across a 10-node local test cluster.
-- Added routing decision logging.
-- Implemented and tested local fallback when peer forwarding fails.
-- Developed task lifecycle tracking with unique task identifiers.
-- Implemented persistent JSONL execution history.
-- Added task state restoration after application restart.
-- Developed task execution summary analytics.
-- Implemented node-wise execution statistics.
-- Added average task execution-time calculations.
-- Created a terminal-based analytics runner.
-- Developed node reliability monitoring and health classification.
-- Implemented node-wise success and failure rate calculations.
-- Added node execution-time analysis and performance ranking.
-- Successfully passed 23 Week 2 regression tests, 2 Day 15 reliability tests, 8 Day 17 analytics tests and 8 Day 18 reliability tests.
+- Newer TCP-based discovery components and the existing Node runtime's UDP discovery are not fully unified.
+- Day 14 integration coordinator is not yet wired into the complete `Node.run()` lifecycle.
+- Large-scale multi-node testing is pending.
+- Simultaneous peer failures and task recovery need further validation.
+- Day 16 execution tracking requires integration with the complete distributed execution pipeline.
+- Day 17 analytics depends on available execution history.
+- Day 18 reliability monitoring currently analyses historical events independently.
+- Day 18 demonstration data is generated sample data, not live cluster measurements.
+- Day 19 scheduler is not yet integrated with the live PeerTable, Scheduler or Node runtime.
+- Cloudpickle deserialization should only be used with trusted peers.
+- End-to-end task execution and failure recovery require further integration testing.
 
 ---
 
-# ⚠️ Current Limitations
+## 🔄 Development Roadmap
 
-- The newer TCP-based DHT discovery components and the existing Node runtime's UDP discovery mechanism are still separate.
-- The Day 14 integration coordinator is not yet wired into the main `Node.run()` lifecycle.
-- Large-scale cluster testing is still pending.
-- More extensive testing is needed for simultaneous node failures and task recovery.
-- Further validation is required for distributed task execution under changing network conditions.
-- Cloudpickle deserialization can execute code and should be restricted to trusted peers.
-- Routing decision logging has been validated with focused tests; broader multi-node routing observability remains future work.
-- Day 16 execution tracking currently maintains its in-memory state and persistent JSONL event history; further integration with the complete distributed execution pipeline is required.
-- Day 17 analytics currently reads the execution history file independently. Actual analytics require recorded execution events in that file.
-- Day 18 reliability monitoring currently analyses historical execution events independently. Live node reliability monitoring requires integration with the distributed execution pipeline.
-- Day 18 demonstration results use generated sample data and should not be interpreted as live cluster measurements.
-- End-to-end execution and failure recovery require further integration and validation.
-
----
-
-# 🔮 Upcoming Development
-
-The next development phase will focus on:
-
-- Implementing task failure recovery and reassignment.
-- Integrating execution tracking with the distributed task processing pipeline.
-- Improving distributed task routing.
-- Strengthening load-aware scheduling.
-- Improving node-level workload distribution.
-- Testing larger peer networks.
-- Introducing multi-node stress testing.
-- Improving security and communication reliability.
-- Expanding execution analytics with additional performance metrics.
-- Integrating node reliability monitoring with live execution.
-- Validating the complete end-to-end task broker workflow.
+- [x] Basic UDP communication
+- [x] TCP communication and message framing
+- [x] Node identity and peer management
+- [x] Peer discovery and lookup
+- [x] Resource monitoring and gossip
+- [x] Authenticated resource reports
+- [x] Three-node integration testing
+- [x] Routing reliability and local fallback
+- [x] Task execution tracking
+- [x] Persistent execution history
+- [x] Task analytics
+- [x] Node reliability monitoring
+- [x] Reliability-aware scheduling decision engine
+- [ ] Integrate Day 19 scheduler with the live node runtime
+- [ ] Integrate execution tracking with distributed task processing
+- [ ] Implement further task failure recovery and reassignment
+- [ ] Validate scheduling across multiple live nodes
+- [ ] Perform larger-scale stress testing
+- [ ] Expand end-to-end integration testing
 
 ---
 
-# 👥 Development
+## 👩‍💻 Development Information
 
-**Project:** MeshWeaver  
-**Domain:** Distributed Systems & Edge Computing  
-**Implementation Language:** Python  
-**Architecture:** Decentralized Peer-to-Peer  
-**Development Branch:** `Navya`
+| Information | Details |
+|---|---|
+| Project | MeshWeaver |
+| Organization | Infotact Solutions |
+| Domain | Distributed Systems & Edge Computing |
+| Language | Python |
+| Architecture | Peer-to-Peer |
+| Development Branch | Navya |
+| Latest Development Day | Day 19 |
+| Repository | [MeshWeaver on GitHub](https://github.com/Moulya-k-m/MeshWeaver) |
 
 ---
 
-# 📌 Conclusion
+<div align="center">
 
-MeshWeaver is an ongoing exploration of decentralized task processing using Python's asynchronous networking capabilities.
+### 🕸️ MeshWeaver
 
-Across the first 18 development days, the project has progressed from basic UDP and TCP communication to peer discovery, routing foundations, resource gossip, scheduler integration, multi-node reliability testing, routing decision transparency, persistent task execution tracking, task execution analytics and node reliability monitoring.
+**Decentralized Communication • Reliable Routing • Intelligent Scheduling**
 
-The implementation explores how independent nodes can communicate, exchange resource information, monitor peer availability, make load-aware routing decisions, respond to forwarding failures and maintain visibility into task and node performance without relying on a traditional centralized message broker.
+Developed as part of the Infotact Solutions internship project.
 
-With successful Week 2 regression testing, Day 15 routing reliability tests, Day 17 analytics testing and Day 18 node reliability testing, MeshWeaver has established a foundation for further development towards a reliable peer-to-peer asynchronous task broker.
+**Project Status: Active Development**
 
-**Smart Routing. Distributed Execution. Decentralized Coordination.**
+**Latest Development: Day 19**
+
+</div>
