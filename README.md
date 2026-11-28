@@ -6,13 +6,6 @@
 
 **Distributed Systems & Edge Computing**
 
-![Python](https://img.shields.io/badge/Python-3.14-blue?logo=python&logoColor=white)
-![AsyncIO](https://img.shields.io/badge/AsyncIO-Asynchronous-purple)
-![Networking](https://img.shields.io/badge/Networking-UDP%20%7C%20TCP-orange)
-![Architecture](https://img.shields.io/badge/Architecture-P2P-blueviolet)
-![Progress](https://img.shields.io/badge/Development-Day%2019-blue)
-![Status](https://img.shields.io/badge/Status-In%20Development-yellow)
-
 A decentralized peer-to-peer asynchronous task broker exploring distributed communication, peer discovery, resource monitoring, load-aware scheduling, routing reliability and execution analytics.
 
 </div>
